@@ -42,26 +42,22 @@ ld: /glade/u/apps/common/23.08/spack/opt/spack/intel-oneapi-compilers/2023.2.1/c
 for_main.c:(.text+0x19): undefined reference to `MAIN__'
 ar: creating ../main/libwrflib.a
 
-real	0m3.404s
-user	0m1.076s
-sys	0m2.144s
+real	0m3.979s
+user	0m1.370s
+sys	0m2.426s
 
-real	0m5.638s
-user	0m2.911s
-sys	0m2.553s
+real	0m5.781s
+user	0m3.150s
+sys	0m2.326s
 
-real	0m44.939s
-user	0m41.715s
-sys	0m2.622s
-
-real	0m15.695s
-user	0m12.428s
-sys	0m2.536s
-1.37user 3.90system 0:05.78elapsed 91%CPU (0avgtext+0avgdata 346576maxresident)k
-0inputs+96outputs (0major+123762minor)pagefaults 0swaps
-1.32user 3.78system 0:05.26elapsed 97%CPU (0avgtext+0avgdata 287320maxresident)k
-0inputs+96outputs (0major+110180minor)pagefaults 0swaps
-1.01user 3.44system 0:04.62elapsed 96%CPU (0avgtext+0avgdata 284320maxresident)k
-0inputs+96outputs (0major+106812minor)pagefaults 0swaps
-1.17user 3.59system 0:04.93elapsed 96%CPU (0avgtext+0avgdata 286220maxresident)k
-0inputs+96outputs (0major+141551minor)pagefaults 0swaps
+real	0m13.730s
+user	0m10.115s
+sys	0m2.575s
+1.41user 4.26system 0:06.47elapsed 87%CPU (0avgtext+0avgdata 348728maxresident)k
+0inputs+96outputs (0major+124747minor)pagefaults 0swaps
+1.24user 3.94system 0:05.33elapsed 97%CPU (0avgtext+0avgdata 287064maxresident)k
+0inputs+96outputs (0major+108789minor)pagefaults 0swaps
+1.26user 3.95system 0:05.36elapsed 97%CPU (0avgtext+0avgdata 287812maxresident)k
+0inputs+96outputs (0major+107610minor)pagefaults 0swaps
+1.25user 4.01system 0:05.58elapsed 94%CPU (0avgtext+0avgdata 287220maxresident)k
+0inputs+96outputs (0major+108721minor)pagefaults 0swaps
