@@ -1068,7 +1068,8 @@
 !..This is a wrapper routine designed to transfer values from 3D to 1D.
 !+---+-----------------------------------------------------------------+
       SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,&
-                              nwfa, nifa, nbca, nwfa2d, nifa2d, nbca2d,  &
+                              nwfa, nifa, nbca,                          & ! C.H. Lan 2025
+                              nwfa2d, nifa2d, nbca2d,                    &
                               aer_init_opt, wif_input_opt,               &
                               th, pii, p, w, dz,                         &
                               dt_in, itimestep,                          &
@@ -1123,6 +1124,7 @@
       REAL, DIMENSION(kts:kte):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d,&
+                          nhphoa1d,                                     & ! C.H. Lan 2025
                           t1d, p1d, w1d, dz1d, rho, dBZ
       REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
 #if ( WRF_CHEM == 1 )
@@ -1143,8 +1145,10 @@
       LOGICAL, OPTIONAL, INTENT(IN) :: diagflag
       INTEGER, OPTIONAL, INTENT(IN) :: do_radar_ref, ke_diag
       CHARACTER*256:: mp_debug
-      
       integer :: kediagloc
+
+      ! real, dimension(:, :, :), allocatable ::  qnhphoa_curr  ! C.H. Lan 2025
+      ! allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
 
 !+---+
 
@@ -1152,6 +1156,9 @@
       j_start = jts
       i_end   = MIN(ite, ide-1)
       j_end   = MIN(jte, jde-1)
+      ! nhphoa = nbca
+      ! write(0,*)'max nhpoha', MAXVAL(nbca)
+      ! write(0,*)'max nbca', MAXVAL(nbca)
 
 !..For idealized testing by developer.
 !     if ( (ide-ids+1).gt.4 .and. (jde-jds+1).lt.4 .and.                &
@@ -1238,6 +1245,7 @@
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
+               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 2025              
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = nbca(i,k,j)
                else
@@ -1251,6 +1259,7 @@
                nwfa1d(k) = 11.1E6/rho(k)
                nifa1d(k) = naIN1*0.01/rho(k)
                nbca1d(k) = 5.55E6/rho(k)
+               nhphoa1d(k) = 0.0 ! C.H. Lan 2025
             enddo
          endif
 
@@ -1284,8 +1293,9 @@
 
          call mp_thompson(aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
-                          nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, p1d, w1d, dz1d,  &
-                      pptrain, pptsnow, pptgraul, pptice, &
+                          nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, nhphoa1d, & ! C.H. Lan 2025
+                          t1d, p1d, w1d, dz1d,  &
+                          pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
                       wetscav_on, rainprod1d, evapprod1d, &
 #endif
@@ -1337,6 +1347,8 @@
                else
                   nbca(i,k,j) = 0.0
                endif
+               ! nhphoa(i,k,j) = nhphoa1d(k) ! C.H. Lan 2025
+               nbca(i,k,j) =  nhphoa1d(k) ! C.H. Lan 2025
             enddo
          endif
          if (is_hail_aware) then
@@ -1513,6 +1525,7 @@
       subroutine mp_thompson (aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,       &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, &
+                          nhphoa1d,                                       & ! C.H. Lan 2025
                           t1d, p1d, w1d, dzq,                             &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1527,7 +1540,7 @@
       INTEGER, INTENT(IN):: kts, kte, ii, jj
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
-                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d
+                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, nhphoa1d  ! C.H. Lan 2025
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
@@ -1540,7 +1553,7 @@
 !..Local variables
       REAL, DIMENSION(kts:kte):: tten, qvten, qcten, qiten, qrten,            &
            qsten, qgten, qbten, niten, nrten, ncten, ngten, nwfaten, nifaten, &
-                                                              nbcaten
+                                                            nbcaten, nhphoaten  ! C.H. Lan 2025
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: prw_vcd
 
@@ -1548,7 +1561,7 @@
            pnc_scw, pnc_gcw
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: pna_rca, pna_sca, pna_gca, &
-           pnd_rcd, pnd_scd, pnd_gcd, pnb_rcb, pnb_scb, pnb_gcb
+           pnd_rcd, pnd_scd, pnd_gcd, pnb_rcb, pnb_scb, pnb_gcb, pnp_rcp, pnp_scp, pnp_gcp ! C.H. Lan 2025     
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: prr_wau, prr_rcw, prr_rcs, &
            prr_rcg, prr_sml, prr_gml, &
@@ -1577,7 +1590,7 @@
 
       REAL, DIMENSION(kts:kte):: temp, twet, pres, qv
       REAL, DIMENSION(kts:kte):: rc, ri, rr, rs, rg, rb
-      REAL, DIMENSION(kts:kte):: ni, nr, nc, ns, ng, nwfa, nifa, nbca
+      REAL, DIMENSION(kts:kte):: ni, nr, nc, ns, ng, nwfa, nifa, nbca, nhphoa  ! C.H. Lan 2025
       REAL, DIMENSION(kts:kte):: rho, rhof, rhof2
       REAL, DIMENSION(kts:kte):: qvs, qvsi, delQvs
       REAL, DIMENSION(kts:kte):: satw, sati, ssatw, ssati
@@ -1680,6 +1693,7 @@
          nwfaten(k) = 0.
          nifaten(k) = 0.
          nbcaten(k) = 0.
+         nhphoaten(k) = 0.0 ! C.H. Lan 2025
 
          prw_vcd(k) = 0.
 
@@ -1802,8 +1816,9 @@
          rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
          if (is_aerosol_aware) then
             if (aer_init_opt .lt. 2) then  ! Constant or climatology (e.g., GOCART)
-               nwfa(k) = MAX(11.1E6, MIN(9999.E6, nwfa1d(k)*rho(k)))
-               nifa(k) = MAX(naIN1*0.01, MIN(9999.E6, nifa1d(k)*rho(k)))
+               nwfa(k) = MAX(0.0, nwfa1d(k)*rho(k))
+               nifa(k) = MAX(0.0, nifa1d(k)*rho(k))
+               nhphoa(k) = max (0.0, nhphoa1d(k) * rho(k)) ! C.H. Lan 2025
                if (wif_input_opt .eq. 2) then  ! Considering BC aerosol
                   nbca(k) = MAX(5.55E6, MIN(9999.E6, nbca1d(k)*rho(k)))
                else
@@ -1812,6 +1827,7 @@
             else   ! First guess (e.g., GEOS-5)
                nwfa(k) = MAX(0.0, nwfa1d(k)*rho(k))
                nifa(k) = MAX(0.0, nifa1d(k)*rho(k))
+               nhphoa(k) = max (0.0, nhphoa1d(k) * rho(k)) ! C.H. Lan 2025
                if (wif_input_opt .eq. 2) then  ! Considering BC aerosol
                   nbca(k) = MAX(0.0, nbca1d(k)*rho(k))
                else
@@ -1821,6 +1837,7 @@
          else
             nwfa(k) = MAX(11.1E6, MIN(9999.E6, nwfa1d(k)*rho(k)))
             nifa(k) = MAX(naIN1*0.01, MIN(9999.E6, nifa1d(k)*rho(k)))
+            nhphoa(k) = max (0.0, nhphoa1d(k) * rho(k)) ! C.H. Lan 2025
             nbca(k) = MAX(5.55E6, MIN(9999.E6, nbca1d(k)*rho(k)))
          endif
 
@@ -2229,6 +2246,14 @@
               pnb_rcb(k) = MIN(DBLE(nbca(k)*odts), pnb_rcb(k))
             endif
           endif
+
+         ! C.H. Lan 2025
+          Ef_ra = Eff_aero(mvd_r(k),0.0236E-6,visco(k),rho(k),temp(k),'r')
+          pnp_rcp(k) = rhof(k)*t1_qr_qc*Ef_ra*nhphoa(k)*N0_r(k)           &
+                         *((lamr+fv_r)**(-cre(9)))
+          pnp_rcp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_rcp(k))
+
+
          endif
 
       enddo
@@ -2456,6 +2481,13 @@
               pnb_scb(k) = MIN(DBLE(nbca(k)*odts), pnb_scb(k))
             endif
           endif
+
+          ! C.H. Lan 2025
+          Ef_sa = Eff_aero(xDs,0.0236E-6,visco(k),rho(k),temp(k),'s')
+          pnp_scp(k) = rhof(k)*t1_qs_qc*Ef_sa*nhphoa(k)*smoe(k)
+          pnp_scp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_scp(k))
+
+
          endif
          if (rg(k) .gt. r_g(1)) then
           xDg = (bm_g + mu_g + 1.) * ilamg(k)
@@ -2478,6 +2510,13 @@
               pnb_gcb(k) = MIN(DBLE(nbca(k)*odts), pnb_gcb(k))
             endif
           endif
+
+                    ! C.H. Lan 2025
+          Ef_ga = Eff_aero(xDg,0.0236E-6,visco(k),rho(k),temp(k),'g')
+          pnp_gcp(k) = rhof(k)*t1_qg_qc*Ef_ga*nhphoa(k)*N0_g(k)           &
+                        *ilamg(k)**cge(9,idx_bg(k))
+          pnp_gcp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_gcp(k))
+
          endif
 
 !..Rain collecting snow.  Cannot assume Wisner (1972) approximation
@@ -2965,6 +3004,8 @@
                        + pna_gca(k) + pni_iha(k)) * orho
             nifaten(k) = nifaten(k) - (pnd_rcd(k) + pnd_scd(k)          &
                        + pnd_gcd(k)) * orho
+            nhphoaten(k) = nhphoaten(k) - (pnp_rcp(k) + pnp_scp(k)      & ! C.H. Lan 2025
+                       + pnp_gcp(k)) * orho
             if (wif_input_opt .eq. 2) then
                nbcaten(k) = nbcaten(k) - (pnb_rcb(k) + pnb_scb(k)       &
                           + pnb_gcb(k)) * orho
@@ -3208,7 +3249,8 @@
          ocp(k) = 1./(Cp*(1.+0.887*qv(k)))
          lvt2(k)=lvap(k)*lvap(k)*ocp(k)*oRv*otemp*otemp
 
-         nwfa(k) = MAX(11.1E6, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
+         ! nwfa(k) = MAX(11.1E6, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
+         nwfa(k) = MAX(0.0, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
       enddo
 
       do k = kts, kte
@@ -3976,19 +4018,21 @@
          nc1d(k) = MAX(2./rho(k), MIN(nc1d(k) + ncten(k)*DT, Nt_c_max))
          if (is_aerosol_aware) then
             if (aer_init_opt .lt. 2) then
-               nwfa1d(k) = MAX(11.1E6, MIN(9999.E6,                           &
-                             (nwfa1d(k)+nwfaten(k)*DT)))
-               nifa1d(k) = MAX(naIN1*0.01, MIN(9999.E6,                       &
-                             (nifa1d(k)+nifaten(k)*DT)))
+               nwfa1d(k) = MAX(0.0, (nwfa1d(k)+nwfaten(k)*DT))
+               nifa1d(k) = MAX(0.0, (nifa1d(k)+nifaten(k)*DT))
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = MAX(5.55E6, MIN(9999.E6,                        &
                                 (nbca1d(k)+nbcaten(k)*DT)))
                else
                   nbca1d(k) = 0.0
                endif
+               nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 2025
+
+
             else
                nwfa1d(k) = MAX(0.0, (nwfa1d(k)+nwfaten(k)*DT))
                nifa1d(k) = MAX(0.0, (nifa1d(k)+nifaten(k)*DT))
+               nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 2025
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = MAX(0.0, (nbca1d(k)+nbcaten(k)*DT))
                else
@@ -4002,6 +4046,7 @@
                           (nifa1d(k)+nifaten(k)*DT)))
             nbca1d(k) = MAX(5.55E6, MIN(9999.E6,                           &
                           (nbca1d(k)+nbcaten(k)*DT)))
+            nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 2025
          endif
 
          if (qc1d(k) .le. R1) then
