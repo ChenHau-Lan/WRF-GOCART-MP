@@ -1070,6 +1070,7 @@
       SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,&
                               nwfa, nifa, nbca,                          & ! C.H. Lan 2025
                               nwfa2d, nifa2d, nbca2d,                    &
+                              RMGOCART, KAPGOCART,                       & ! C.H. Lan 2025
                               aer_init_opt, wif_input_opt,               &
                               th, pii, p, w, dz,                         &
                               dt_in, itimestep,                          &
@@ -1096,6 +1097,8 @@
                           qv, qc, qr, qi, qs, qg, ni, nr, th
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
                           nc, nwfa, nifa, nbca, qb, ng
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+                          RMGOCART, KAPGOCART ! C.H. Lan 2025
       REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d, &
                                                                 nbca2d
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
@@ -1125,6 +1128,7 @@
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d,&
                           nhphoa1d,                                     & ! C.H. Lan 2025
+                          kappa1d, rmg1d,                                & ! C.H. Lan 2025
                           t1d, p1d, w1d, dz1d, rho, dBZ
       REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
 #if ( WRF_CHEM == 1 )
@@ -1245,7 +1249,9 @@
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
-               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 2025              
+               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 2025         
+               kappa1d(k) = KAPGOCART(i,k,j) ! C.H. Lan 2025     
+               rmg1d(k) = RMGOCART(i,k,j)  ! C.H. Lan 2025         
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = nbca(i,k,j)
                else
@@ -1294,6 +1300,7 @@
          call mp_thompson(aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
                           nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, nhphoa1d, & ! C.H. Lan 2025
+                           kappa1d, rmg1d,                             & ! C.H. Lan 2025
                           t1d, p1d, w1d, dz1d,  &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1526,6 +1533,7 @@
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,       &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, &
                           nhphoa1d,                                       & ! C.H. Lan 2025
+                          kappa1d, rmg1d,                                 & ! C.H. Lan 2025
                           t1d, p1d, w1d, dzq,                             &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1540,7 +1548,8 @@
       INTEGER, INTENT(IN):: kts, kte, ii, jj
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
-                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, nhphoa1d  ! C.H. Lan 2025
+                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, nhphoa1d, & ! C.H. Lan 2025
+                          kappa1d, rmg1d                                  ! C.H. Lan 2025
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
@@ -3455,7 +3464,7 @@
 !+---+-----------------------------------------------------------------+ !  DROPLET NUCLEATION
            if (clap .gt. eps) then
             if (is_aerosol_aware) then
-               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k)))
+               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k),kappa1d(k),rmg1d(k)))
             else
                xnc = Nt_c
             endif
@@ -5220,10 +5229,10 @@
 !.. updraft velocity could easily be negative, we could use the temp
 !.. and its tendency to diagnose a pretend postive updraft velocity.
 !+---+-----------------------------------------------------------------+
-      real function activ_ncloud(Tt, Ww, NCCN)
+      real function activ_ncloud(Tt, Ww, NCCN, Ka, Ra)
 
       implicit none
-      REAL, INTENT(IN):: Tt, Ww, NCCN
+      REAL, INTENT(IN):: Tt, Ww, NCCN, Ka, Ra
       REAL:: n_local, w_local
       INTEGER:: i, j, k, l, m, n
       REAL:: A, B, C, D, t, u, x1, x2, y1, y2, nx, wy, fraction
@@ -5235,7 +5244,7 @@
 !     ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)  ntb_arr
 !     ta_Ka = (/0.2, 0.4, 0.6, 0.8/)  ntb_ark
 
-      n_local = NCCN * 1.E-6
+      n_local = NCCN * 1.E-6 ! convert to #/cm**3
       w_local = Ww
 
       if (n_local .ge. ta_Na(ntb_arc)) then
