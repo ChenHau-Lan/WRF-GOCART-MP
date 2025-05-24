@@ -376,6 +376,9 @@ REAL,  DIMENSION( ims:ime , kms:kme , jms:jme , ntot_amode ),       &
        if( config_flags%mp_physics == THOMPSON ) then
          rainrate(:,:,:) = rainprod(:,:,:)
          evaprate(:,:,:) = evapprod(:,:,:)
+       elseif( config_flags%mp_physics == THOMPSONAERO ) then !C.H Lan
+         rainrate(:,:,:) = rainprod(:,:,:)
+         evaprate(:,:,:) = evapprod(:,:,:)
        elseif( config_flags%mp_physics == WSM6SCHEME ) then
          rainrate(:,:,:) = rainprod(:,:,:)
          evaprate(:,:,:) = evapprod(:,:,:)
