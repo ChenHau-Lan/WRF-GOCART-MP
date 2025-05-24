@@ -5233,9 +5233,15 @@
 
       implicit none
       REAL, INTENT(IN):: Tt, Ww, NCCN, Ka, Ra
-      REAL:: n_local, w_local
+      REAL:: n_local, w_local, t_local, ka_local, ra_local
       INTEGER:: i, j, k, l, m, n
-      REAL:: A, B, C, D, t, u, x1, x2, y1, y2, nx, wy, fraction
+      INTEGER:: i1, i2, j1, j2, k1, k2, l1, l2, m1, m2
+      integer :: ii, jj, kk, ll, mm, idx_i, idx_j, idx_k, idx_l, idx_m
+      integer :: n
+      ! Interpolation
+      integer, parameter :: n_dims = 32
+      real :: t, u, v, w, x, POINT, fraction
+      real :: weight(n_dims)
 
 
 !     ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)  ntb_arc
@@ -5246,61 +5252,119 @@
 
       n_local = NCCN * 1.E-6 ! convert to #/cm**3
       w_local = Ww
+      t_local = Tt
+      ka_local = Ka
+      ra_local = Ra
+      
+      ! ----- n_local index -----
+      if (n_local <= ta_Na(1)) then
+         i = 1
+      else if (n_local >= ta_Na(ntb_arc)) then
+         i = ntb_arc
+      else
+         do i = 2, ntb_arc
+            if (n_local >= ta_Na(i-1) .and. n_local < ta_Na(i)) exit
+         enddo
+      end if
 
-      if (n_local .ge. ta_Na(ntb_arc)) then
-         n_local = ta_Na(ntb_arc) - 1.0
-      elseif (n_local .le. ta_Na(1)) then
-         n_local = ta_Na(1) + 1.0
-      endif
-      do n = 2, ntb_arc
-         if (n_local.ge.ta_Na(n-1) .and. n_local.lt.ta_Na(n)) goto 8003
-      enddo
- 8003 continue
-      i = n
-      x1 = LOG(ta_Na(i-1))
-      x2 = LOG(ta_Na(i))
+      ! ----- w_local index -----
+      if (w_local <= ta_Ww(1)) then
+         j = 1
+      else if (w_local >= ta_Ww(ntb_arw)) then
+         j = ntb_arw
+      else
+         do j = 2, ntb_arw
+            if (w_local >= ta_Ww(j-1) .and. w_local < ta_Ww(j)) exit
+         enddo
+      end if
 
-      if (w_local .ge. ta_Ww(ntb_arw)) then
-         w_local = ta_Ww(ntb_arw) - 1.0
-      elseif (w_local .le. ta_Ww(1)) then
-         w_local = ta_Ww(1) + 0.001
-      endif
-      do n = 2, ntb_arw
-         if (w_local.ge.ta_Ww(n-1) .and. w_local.lt.ta_Ww(n)) goto 8005
-      enddo
- 8005 continue
-      j = n
-      y1 = LOG(ta_Ww(j-1))
-      y2 = LOG(ta_Ww(j))
+      ! ----- t_local index -----
+      if (t_local <= ta_Tk(1)) then
+         k = 1
+      else if (t_local >= ta_Tk(ntb_art)) then
+         k = ntb_art
+      else
+         do k = 2, ntb_art
+            if (t_local >= ta_Tk(k-1) .and. t_local < ta_Tk(k)) exit
+         enddo
+      end if
 
-      k = MAX(1, MIN( NINT( (Tt - ta_Tk(1))*0.1) + 1, ntb_art))
+      ! ----- ra_local index -----
+      if (ra_local <= ta_Ra(1)) then
+         l = 1
+      else if (ra_local >= ta_Ra(ntb_arr)) then
+         l = ntb_arr
+      else
+         do l = 2, ntb_arr
+            if (ra_local >= ta_Ra(l-1) .and. ra_local < ta_Ra(l)) exit
+         enddo
+      end if
 
-!..The next two values are indexes of mean aerosol radius and
-!.. hygroscopicity.  Currently these are constant but a future version
-!.. should implement other variables to allow more freedom such as
-!.. at least simple separation of tiny size sulfates from larger
-!.. sea salts.
-      l = 3
-      m = 2
+      ! ----- ka_local index -----
+      if (ka_local <= ta_Ka(1)) then
+         m = 1
+      else if (ka_local >= ta_Ka(ntb_ark)) then
+         m = ntb_ark
+      else
+         do m = 2, ntb_ark
+            if (ka_local >= ta_Ka(m-1) .and. ka_local < ta_Ka(m)) exit
+         enddo
+      end if
 
-      A = tnccn_act(i-1,j-1,k,l,m)
-      B = tnccn_act(i,j-1,k,l,m)
-      C = tnccn_act(i,j,k,l,m)
-      D = tnccn_act(i-1,j,k,l,m)
-      nx = LOG(n_local)
-      wy = LOG(w_local)
+      ! Find surrounding indices for interpolation
+      ! For Na
+      i1 = max(1, i - 1)
+      i2 = i
+      ! For Ww
+      j1 = max(1, j - 1)
+      j2 = j
+      ! For Tk
+      k1 = max(1, k - 1)
+      k2 = k
+      ! For Ra
+      l1 = max(1, l - 1)
+      l2 = l
+      ! For Ka
+      m1 = max(1, m - 1)
+      m2 = m
 
-      t = (nx-x1)/(x2-x1)
-      u = (wy-y1)/(y2-y1)
-
-!     t = (n_local-ta(Na(i-1))/(ta_Na(i)-ta_Na(i-1))
-!     u = (w_local-ta_Ww(j-1))/(ta_Ww(j)-ta_Ww(j-1))
-
-      fraction = (1.0-t)*(1.0-u)*A + t*(1.0-u)*B + t*u*C + (1.0-t)*u*D
-
-!     if (NCCN*fraction .gt. 0.75*Nt_c_max) then
-!        write(*,*) ' DEBUG-GT ', n_local, w_local, Tt, i, j, k
-!     endif
+      ! Compute interpolation fractions
+      t = (max(0.0, min(1.0, (LOG(Na) - LOG(ta_Na(i1))) / (LOG(ta_Na(i2)) - LOG(ta_Na(i1))))))  ! along i (Na)
+      u = (max(0.0, min(1.0, (LOG(Ww) - LOG(ta_Ww(j1))) / (LOG(ta_Ww(j2)) - LOG(ta_Ww(j1))))))  ! along j (Ww)
+      v = (max(0.0, min(1.0, (Tk - ta_Tk(k1)) / (ta_Tk(k2) - ta_Tk(k1)))))  ! along k (Tk)
+      w = (max(0.0, min(1.0, (Ra - ta_Ra(l1)) / (ta_Ra(l2) - ta_Ra(l1)))))  ! along l (Ra)
+      x = (max(0.0, min(1.0, (Ka - ta_Ka(m1)) / (ta_Ka(m2) - ta_Ka(m1)))))  ! along m (Ka)
+      ! interpolation
+      n=0
+      fraction=0
+      do mm = 0, 1
+         do ll = 0, 1
+            do kk = 0, 1
+               do jj = 0, 1
+                  do ii = 0, 1
+                     n = n + 1
+                     ! calculate the index for tnccn_act
+                     idx_i = merge(i2, i1, ii == 1)
+                     idx_j = merge(j2, j1, jj == 1)
+                     idx_k = merge(k2, k1, kk == 1)
+                     idx_l = merge(l2, l1, ll == 1)
+                     idx_m = merge(m2, m1, mm == 1)
+                     !   print *, 'idx_i, idx_j, idx_k, idx_l, idx_m = ', idx_i, idx_j, idx_k, idx_l, idx_m
+                     ! calculate the corresponding tnccn_act value
+                     POINT = tnccn_act(idx_i, idx_j, idx_k, idx_l, idx_m)
+                     ! calculate the weight for interpolation
+                     weight(n) = merge(t, 1.0 - t, ii == 1) * &
+                                 merge(u, 1.0 - u, jj == 1) * &
+                                 merge(v, 1.0 - v, kk == 1) * &
+                                 merge(w, 1.0 - w, ll == 1) * &
+                                 merge(x, 1.0 - x, mm == 1)
+                     ! accumulate the result
+                     fraction = fraction + POINT * weight(n)
+                  end do
+               end do
+            end do
+         end do
+      end do
 
       activ_ncloud = NCCN*fraction
 
