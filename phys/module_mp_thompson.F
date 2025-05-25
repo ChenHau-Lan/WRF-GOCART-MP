@@ -5235,12 +5235,12 @@
       REAL, INTENT(IN):: Tt, Ww, NCCN, Ka, Ra
       REAL:: n_local, w_local, t_local, ka_local, ra_local
       INTEGER:: i, j, k, l, m, n
-      INTEGER:: i1, i2, j1, j2, k1, k2, l1, l2, m1, m2
+      INTEGER:: i2(2), j2(2), k2(2), l2(2), m2(2)
       integer :: ii, jj, kk, ll, mm, idx_i, idx_j, idx_k, idx_l, idx_m
-      integer :: n
       ! Interpolation
       integer, parameter :: n_dims = 32
       real :: t, u, v, w, x, POINT, fraction
+      real :: t2(2), u2(2), v2(2), w2(2), x2(2)
       real :: weight(n_dims)
 
 
@@ -5313,51 +5313,49 @@
 
       ! Find surrounding indices for interpolation
       ! For Na
-      i1 = max(1, i - 1)
-      i2 = i
+      i2(1) = max(1, i - 1)
+      i2(2) = i
       ! For Ww
-      j1 = max(1, j - 1)
-      j2 = j
+      j2(1) = max(1, j - 1)
+      j2(2) = j
       ! For Tk
-      k1 = max(1, k - 1)
-      k2 = k
+      k2(1) = max(1, k - 1)
+      k2(2) = k
       ! For Ra
-      l1 = max(1, l - 1)
-      l2 = l
+      l2(1) = max(1, l - 1)
+      l2(2) = l
       ! For Ka
-      m1 = max(1, m - 1)
-      m2 = m
-
+      m2(1) = max(1, m - 1)
+      m2(2) = m
       ! Compute interpolation fractions
-      t = (max(0.0, min(1.0, (LOG(Na) - LOG(ta_Na(i1))) / (LOG(ta_Na(i2)) - LOG(ta_Na(i1))))))  ! along i (Na)
-      u = (max(0.0, min(1.0, (LOG(Ww) - LOG(ta_Ww(j1))) / (LOG(ta_Ww(j2)) - LOG(ta_Ww(j1))))))  ! along j (Ww)
-      v = (max(0.0, min(1.0, (Tk - ta_Tk(k1)) / (ta_Tk(k2) - ta_Tk(k1)))))  ! along k (Tk)
-      w = (max(0.0, min(1.0, (Ra - ta_Ra(l1)) / (ta_Ra(l2) - ta_Ra(l1)))))  ! along l (Ra)
-      x = (max(0.0, min(1.0, (Ka - ta_Ka(m1)) / (ta_Ka(m2) - ta_Ka(m1)))))  ! along m (Ka)
+      t = (max(0.0, min(1.0, (LOG(n_local) - LOG(ta_Na(i2(1))) / (LOG(ta_Na(i2(2))) - LOG(ta_Na(i2(1))))))))  ! along i (Na)
+      u = (max(0.0, min(1.0, (LOG(w_local) - LOG(ta_Ww(j2(1))) / (LOG(ta_Ww(j2(2))) - LOG(ta_Ww(j2(1)))))))) ! along j (Ww)
+      v = (max(0.0, min(1.0, (t_local - ta_Tk(k2(1)) / (ta_Tk(k2(2)) - ta_Tk(k2(1)))))))  ! along k (Tk)
+      w = (max(0.0, min(1.0, (ra_local - ta_Ra(l2(1)) / (ta_Ra(l2(2)) - ta_Ra(l2(1)))))))  ! along l (Ra)
+      x = (max(0.0, min(1.0, (ka_local - ta_Ka(m2(1)) / (ta_Ka(m2(2)) - ta_Ka(m2(1)))))))  ! along m (Ka)
+
+      t2(1) = 1.0 - t
+      t2(2) = t
+      u2(1) = 1.0 - u
+      u2(2) = u
+      v2(1) = 1.0 - v
+      v2(2) = v
+      w2(1) = 1.0 - w
+      w2(2) = w
+      x2(1) = 1.0 - x
+      x2(2) = x
       ! interpolation
       n=0
       fraction=0
-      do mm = 0, 1
-         do ll = 0, 1
-            do kk = 0, 1
-               do jj = 0, 1
-                  do ii = 0, 1
-                     n = n + 1
-                     ! calculate the index for tnccn_act
-                     idx_i = merge(i2, i1, ii == 1)
-                     idx_j = merge(j2, j1, jj == 1)
-                     idx_k = merge(k2, k1, kk == 1)
-                     idx_l = merge(l2, l1, ll == 1)
-                     idx_m = merge(m2, m1, mm == 1)
-                     !   print *, 'idx_i, idx_j, idx_k, idx_l, idx_m = ', idx_i, idx_j, idx_k, idx_l, idx_m
+      do mm = 1, 2
+         do ll = 1, 2
+            do kk = 1, 2
+               do jj = 1, 2
+                  do ii = 1, 2
                      ! calculate the corresponding tnccn_act value
-                     POINT = tnccn_act(idx_i, idx_j, idx_k, idx_l, idx_m)
+                     POINT = tnccn_act(i2(ii), j2(jj), k2(kk), l2(ll), m2(mm))
                      ! calculate the weight for interpolation
-                     weight(n) = merge(t, 1.0 - t, ii == 1) * &
-                                 merge(u, 1.0 - u, jj == 1) * &
-                                 merge(v, 1.0 - v, kk == 1) * &
-                                 merge(w, 1.0 - w, ll == 1) * &
-                                 merge(x, 1.0 - x, mm == 1)
+                     weight(n) = t2(ii) * u2(jj) * v2(kk) * w2(ll) * x2(mm)
                      ! accumulate the result
                      fraction = fraction + POINT * weight(n)
                   end do
