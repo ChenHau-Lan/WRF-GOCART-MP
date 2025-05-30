@@ -1070,6 +1070,7 @@
       SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,&
                               nwfa, nifa, nbca,                          & ! C.H. Lan 2025
                               nwfa2d, nifa2d, nbca2d,                    &
+                              RMGOCART, KAPGOCART,                       & ! C.H. Lan 2025
                               aer_init_opt, wif_input_opt,               &
                               th, pii, p, w, dz,                         &
                               dt_in, itimestep,                          &
@@ -1096,6 +1097,8 @@
                           qv, qc, qr, qi, qs, qg, ni, nr, th
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
                           nc, nwfa, nifa, nbca, qb, ng
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+                          RMGOCART, KAPGOCART ! C.H. Lan 2025
       REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d, &
                                                                 nbca2d
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
@@ -1125,6 +1128,7 @@
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d,&
                           nhphoa1d,                                     & ! C.H. Lan 2025
+                          kappa1d, rmg1d,                                & ! C.H. Lan 2025
                           t1d, p1d, w1d, dz1d, rho, dBZ
       REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
 #if ( WRF_CHEM == 1 )
@@ -1245,7 +1249,9 @@
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
-               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 2025              
+               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 2025         
+               kappa1d(k) = KAPGOCART(i,k,j) ! C.H. Lan 2025     
+               rmg1d(k) = RMGOCART(i,k,j)  ! C.H. Lan 2025         
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = nbca(i,k,j)
                else
@@ -1294,6 +1300,7 @@
          call mp_thompson(aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
                           nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, nhphoa1d, & ! C.H. Lan 2025
+                           kappa1d, rmg1d,                             & ! C.H. Lan 2025
                           t1d, p1d, w1d, dz1d,  &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1526,6 +1533,7 @@
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,       &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, &
                           nhphoa1d,                                       & ! C.H. Lan 2025
+                          kappa1d, rmg1d,                                 & ! C.H. Lan 2025
                           t1d, p1d, w1d, dzq,                             &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1540,7 +1548,8 @@
       INTEGER, INTENT(IN):: kts, kte, ii, jj
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
-                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, nhphoa1d  ! C.H. Lan 2025
+                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, nhphoa1d, & ! C.H. Lan 2025
+                          kappa1d, rmg1d                                  ! C.H. Lan 2025
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
@@ -3455,7 +3464,7 @@
 !+---+-----------------------------------------------------------------+ !  DROPLET NUCLEATION
            if (clap .gt. eps) then
             if (is_aerosol_aware) then
-               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k)))
+               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k),kappa1d(k),rmg1d(k)))
             else
                xnc = Nt_c
             endif
@@ -5220,13 +5229,19 @@
 !.. updraft velocity could easily be negative, we could use the temp
 !.. and its tendency to diagnose a pretend postive updraft velocity.
 !+---+-----------------------------------------------------------------+
-      real function activ_ncloud(Tt, Ww, NCCN)
+      real function activ_ncloud(Tt, Ww, NCCN, Ka, Ra)
 
       implicit none
-      REAL, INTENT(IN):: Tt, Ww, NCCN
-      REAL:: n_local, w_local
+      REAL, INTENT(IN):: Tt, Ww, NCCN, Ka, Ra
+      REAL:: n_local, w_local, t_local, ka_local, ra_local
       INTEGER:: i, j, k, l, m, n
-      REAL:: A, B, C, D, t, u, x1, x2, y1, y2, nx, wy, fraction
+      INTEGER:: i2(2), j2(2), k2(2), l2(2), m2(2)
+      integer :: ii, jj, kk, ll, mm, idx_i, idx_j, idx_k, idx_l, idx_m
+      ! Interpolation
+      integer, parameter :: n_dims = 32
+      real :: t, u, v, w, x, POINT, fraction
+      real :: t2(2), u2(2), v2(2), w2(2), x2(2)
+      real :: weight(n_dims)
 
 
 !     ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)  ntb_arc
@@ -5235,63 +5250,119 @@
 !     ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)  ntb_arr
 !     ta_Ka = (/0.2, 0.4, 0.6, 0.8/)  ntb_ark
 
-      n_local = NCCN * 1.E-6
+      n_local = NCCN * 1.E-6 ! convert to #/cm**3
       w_local = Ww
+      t_local = Tt
+      ka_local = Ka
+      ra_local = Ra
+      
+      ! ----- n_local index -----
+      if (n_local <= ta_Na(1)) then
+         i = 1
+      else if (n_local >= ta_Na(ntb_arc)) then
+         i = ntb_arc
+      else
+         do i = 2, ntb_arc
+            if (n_local >= ta_Na(i-1) .and. n_local < ta_Na(i)) exit
+         enddo
+      end if
 
-      if (n_local .ge. ta_Na(ntb_arc)) then
-         n_local = ta_Na(ntb_arc) - 1.0
-      elseif (n_local .le. ta_Na(1)) then
-         n_local = ta_Na(1) + 1.0
-      endif
-      do n = 2, ntb_arc
-         if (n_local.ge.ta_Na(n-1) .and. n_local.lt.ta_Na(n)) goto 8003
-      enddo
- 8003 continue
-      i = n
-      x1 = LOG(ta_Na(i-1))
-      x2 = LOG(ta_Na(i))
+      ! ----- w_local index -----
+      if (w_local <= ta_Ww(1)) then
+         j = 1
+      else if (w_local >= ta_Ww(ntb_arw)) then
+         j = ntb_arw
+      else
+         do j = 2, ntb_arw
+            if (w_local >= ta_Ww(j-1) .and. w_local < ta_Ww(j)) exit
+         enddo
+      end if
 
-      if (w_local .ge. ta_Ww(ntb_arw)) then
-         w_local = ta_Ww(ntb_arw) - 1.0
-      elseif (w_local .le. ta_Ww(1)) then
-         w_local = ta_Ww(1) + 0.001
-      endif
-      do n = 2, ntb_arw
-         if (w_local.ge.ta_Ww(n-1) .and. w_local.lt.ta_Ww(n)) goto 8005
-      enddo
- 8005 continue
-      j = n
-      y1 = LOG(ta_Ww(j-1))
-      y2 = LOG(ta_Ww(j))
+      ! ----- t_local index -----
+      if (t_local <= ta_Tk(1)) then
+         k = 1
+      else if (t_local >= ta_Tk(ntb_art)) then
+         k = ntb_art
+      else
+         do k = 2, ntb_art
+            if (t_local >= ta_Tk(k-1) .and. t_local < ta_Tk(k)) exit
+         enddo
+      end if
 
-      k = MAX(1, MIN( NINT( (Tt - ta_Tk(1))*0.1) + 1, ntb_art))
+      ! ----- ra_local index -----
+      if (ra_local <= ta_Ra(1)) then
+         l = 1
+      else if (ra_local >= ta_Ra(ntb_arr)) then
+         l = ntb_arr
+      else
+         do l = 2, ntb_arr
+            if (ra_local >= ta_Ra(l-1) .and. ra_local < ta_Ra(l)) exit
+         enddo
+      end if
 
-!..The next two values are indexes of mean aerosol radius and
-!.. hygroscopicity.  Currently these are constant but a future version
-!.. should implement other variables to allow more freedom such as
-!.. at least simple separation of tiny size sulfates from larger
-!.. sea salts.
-      l = 3
-      m = 2
+      ! ----- ka_local index -----
+      if (ka_local <= ta_Ka(1)) then
+         m = 1
+      else if (ka_local >= ta_Ka(ntb_ark)) then
+         m = ntb_ark
+      else
+         do m = 2, ntb_ark
+            if (ka_local >= ta_Ka(m-1) .and. ka_local < ta_Ka(m)) exit
+         enddo
+      end if
 
-      A = tnccn_act(i-1,j-1,k,l,m)
-      B = tnccn_act(i,j-1,k,l,m)
-      C = tnccn_act(i,j,k,l,m)
-      D = tnccn_act(i-1,j,k,l,m)
-      nx = LOG(n_local)
-      wy = LOG(w_local)
+      ! Find surrounding indices for interpolation
+      ! For Na
+      i2(1) = max(1, i - 1)
+      i2(2) = i
+      ! For Ww
+      j2(1) = max(1, j - 1)
+      j2(2) = j
+      ! For Tk
+      k2(1) = max(1, k - 1)
+      k2(2) = k
+      ! For Ra
+      l2(1) = max(1, l - 1)
+      l2(2) = l
+      ! For Ka
+      m2(1) = max(1, m - 1)
+      m2(2) = m
+      ! Compute interpolation fractions
+      t = (max(0.0, min(1.0, (LOG(n_local) - LOG(ta_Na(i2(1))) / (LOG(ta_Na(i2(2))) - LOG(ta_Na(i2(1))))))))  ! along i (Na)
+      u = (max(0.0, min(1.0, (LOG(w_local) - LOG(ta_Ww(j2(1))) / (LOG(ta_Ww(j2(2))) - LOG(ta_Ww(j2(1)))))))) ! along j (Ww)
+      v = (max(0.0, min(1.0, (t_local - ta_Tk(k2(1)) / (ta_Tk(k2(2)) - ta_Tk(k2(1)))))))  ! along k (Tk)
+      w = (max(0.0, min(1.0, (ra_local - ta_Ra(l2(1)) / (ta_Ra(l2(2)) - ta_Ra(l2(1)))))))  ! along l (Ra)
+      x = (max(0.0, min(1.0, (ka_local - ta_Ka(m2(1)) / (ta_Ka(m2(2)) - ta_Ka(m2(1)))))))  ! along m (Ka)
 
-      t = (nx-x1)/(x2-x1)
-      u = (wy-y1)/(y2-y1)
-
-!     t = (n_local-ta(Na(i-1))/(ta_Na(i)-ta_Na(i-1))
-!     u = (w_local-ta_Ww(j-1))/(ta_Ww(j)-ta_Ww(j-1))
-
-      fraction = (1.0-t)*(1.0-u)*A + t*(1.0-u)*B + t*u*C + (1.0-t)*u*D
-
-!     if (NCCN*fraction .gt. 0.75*Nt_c_max) then
-!        write(*,*) ' DEBUG-GT ', n_local, w_local, Tt, i, j, k
-!     endif
+      t2(1) = 1.0 - t
+      t2(2) = t
+      u2(1) = 1.0 - u
+      u2(2) = u
+      v2(1) = 1.0 - v
+      v2(2) = v
+      w2(1) = 1.0 - w
+      w2(2) = w
+      x2(1) = 1.0 - x
+      x2(2) = x
+      ! interpolation
+      n=0
+      fraction=0
+      do mm = 1, 2
+         do ll = 1, 2
+            do kk = 1, 2
+               do jj = 1, 2
+                  do ii = 1, 2
+                     ! calculate the corresponding tnccn_act value
+                     POINT = tnccn_act(i2(ii), j2(jj), k2(kk), l2(ll), m2(mm))
+                     ! calculate the weight for interpolation
+                     weight(n) = t2(ii) * u2(jj) * v2(kk) * w2(ll) * x2(mm)
+                     ! accumulate the result
+                     fraction = fraction + POINT * weight(n)
+                  end do
+               end do
+            end do
+         end do
+      end do
 
       activ_ncloud = NCCN*fraction
 
