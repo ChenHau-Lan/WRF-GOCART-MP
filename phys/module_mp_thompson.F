@@ -1335,10 +1335,10 @@
          if (is_aerosol_aware) then
 !..Add anthropogenic emissions
 !-GT        nwfa1d(kts) = nwfa1
-            nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
-            nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
+            nwfa1d(kts) = nwfa1d(kts) !+ nwfa2d(i,j)*dt_in
+            nifa1d(kts) = nifa1d(kts) !+ nifa2d(i,j)*dt_in
             if (wif_input_opt .eq. 2) then
-               nbca1d(kts) = nbca1d(kts) + nbca2d(i,j)*dt_in
+               nbca1d(kts) = nbca1d(kts) !+ nbca2d(i,j)*dt_in C.H. Lan 2025
             else
                nbca1d(kts) = 0.0
             endif
