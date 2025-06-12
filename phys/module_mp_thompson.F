@@ -244,11 +244,11 @@
       INTEGER, PARAMETER, PRIVATE:: ntb_i1 = 55
       INTEGER, PARAMETER, PRIVATE:: ntb_t = 9
       INTEGER, PRIVATE:: nic1, nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3
-      INTEGER, PARAMETER, PRIVATE:: ntb_arc = 7
+      INTEGER, PARAMETER, PRIVATE:: ntb_arc = 11
       INTEGER, PARAMETER, PRIVATE:: ntb_arw = 9
       INTEGER, PARAMETER, PRIVATE:: ntb_art = 7
-      INTEGER, PARAMETER, PRIVATE:: ntb_arr = 5
-      INTEGER, PARAMETER, PRIVATE:: ntb_ark = 4
+      INTEGER, PARAMETER, PRIVATE:: ntb_arr = 8
+      INTEGER, PARAMETER, PRIVATE:: ntb_ark = 7
       INTEGER, PARAMETER, PRIVATE:: ntb_IN = 55
       INTEGER, PRIVATE:: niIN2
 
@@ -333,15 +333,16 @@
 !..Aerosol table parameter: Number of available aerosols, vertical
 !.. velocity, temperature, aerosol mean radius, and hygroscopicity.
       REAL, DIMENSION(ntb_arc), PARAMETER, PRIVATE:: &
-      ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)
+      ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0, 31600.0, 100000.0, 316000.0, 1000000.0/)
       REAL, DIMENSION(ntb_arw), PARAMETER, PRIVATE:: &
       ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)
       REAL, DIMENSION(ntb_art), PARAMETER, PRIVATE:: &
       ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
       REAL, DIMENSION(ntb_arr), PARAMETER, PRIVATE:: &
-      ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
+      ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16, 0.48, 0.96, 1.6/)
       REAL, DIMENSION(ntb_ark), PARAMETER, PRIVATE:: &
-      ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
+      ta_Ka = (/0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.28/)
+
 
 !..Lookup tables for IN concentration (/m**3) from 0.001 to 1000/Liter.
       REAL, DIMENSION(ntb_IN), PARAMETER, PRIVATE:: &
@@ -5244,11 +5245,11 @@
       real :: weight(n_dims)
 
 
-!     ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0/)  ntb_arc
-!     ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)  ntb_arw
+!     ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0, 31600.0, 100000.0, 316000.0, 1000000.0/)  ntb_arc
+!     ta_Ww = (/1., 3.16, 10., 31.6, 100., 316., 1000., 3160., 10000./)  ntb_arw
 !     ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)  ntb_art
-!     ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)  ntb_arr
-!     ta_Ka = (/0.2, 0.4, 0.6, 0.8/)  ntb_ark
+!     ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16, 0.48, 0.96, 1.6/)  ntb_arr
+!     ta_Ka = (/0.1, 0.2, 0.4, 0.6, 0.8, 1.0, 1.28/)  ntb_ark
 
       n_local = NCCN * 1.E-6 ! convert to #/cm**3
       w_local = Ww
