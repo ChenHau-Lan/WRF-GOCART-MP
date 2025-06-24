@@ -244,7 +244,7 @@
       INTEGER, PARAMETER, PRIVATE:: ntb_i1 = 55
       INTEGER, PARAMETER, PRIVATE:: ntb_t = 9
       INTEGER, PRIVATE:: nic1, nic2, nii2, nii3, nir2, nir3, nis2, nig2, nig3
-      INTEGER, PARAMETER, PRIVATE:: ntb_arc = 11
+      INTEGER, PARAMETER, PRIVATE:: ntb_arc = 9
       INTEGER, PARAMETER, PRIVATE:: ntb_arw = 9
       INTEGER, PARAMETER, PRIVATE:: ntb_art = 7
       INTEGER, PARAMETER, PRIVATE:: ntb_arr = 8
@@ -333,7 +333,7 @@
 !..Aerosol table parameter: Number of available aerosols, vertical
 !.. velocity, temperature, aerosol mean radius, and hygroscopicity.
       REAL, DIMENSION(ntb_arc), PARAMETER, PRIVATE:: &
-      ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0, 31600.0, 100000.0, 316000.0, 1000000.0/)
+      ta_Na = (/10.0, 31.6, 100.0, 316.0, 1000.0, 3160.0, 10000.0, 31600.0, 100000.0/)
       REAL, DIMENSION(ntb_arw), PARAMETER, PRIVATE:: &
       ta_Ww = (/0.01, 0.0316, 0.1, 0.316, 1.0, 3.16, 10.0, 31.6, 100.0/)
       REAL, DIMENSION(ntb_art), PARAMETER, PRIVATE:: &
