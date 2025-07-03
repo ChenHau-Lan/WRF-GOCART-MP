@@ -4,6 +4,17 @@
 MODULE module_microphysics_driver
   real, private, parameter :: QX_MIN = 1.E-12
   real, private, parameter :: NI_MIN = 1.E-6
+
+   ! C.H. Lan 07.03.2025
+   real, private, parameter, dimension(5) :: MASS2NUMBER_DUST = (/2.4547e+14, 3.2831e+13, &
+                                 6.5168e+12, 9.8862e+11, 1.7595e+11/)
+   real, private, parameter, dimension(5) :: MASS2NUMBER_SEASALT = (/3.0174e+17, 1.0851e+16, &
+                                 1.2070e+14, 9.3908e+12, 2.9217e+11 /)
+   real, private, parameter :: MASS2NUMBER_SO4 = 9.0143e+16
+   real, private, parameter  :: MASS2NUMBER_OC = 9.7576e+17
+   real, private, parameter  :: MASS2NUMBER_BC = 1.5002e+19
+   real, private, parameter :: MICROG2KG = 1.0e-9 
+
 CONTAINS
 
 SUBROUTINE microphysics_driver(                                          &
