@@ -2480,6 +2480,10 @@
               pnb_scb(k) = MIN(DBLE(nbca(k)*odts), pnb_scb(k))
             endif
           endif
+          ! snow wet scavenging for hydrophobic aerosols C.H. Lan 07.04.2025
+          Ef_sa = Eff_aero(xDs,0.0236E-6,visco(k),rho(k),temp(k),'s')
+          pnp_scp(k) = rhof(k)*t1_qs_qc*Ef_sa*nhphoa(k)*smoe(k)
+          pnp_scp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_scp(k))
          endif
          if (rg(k) .gt. r_g(1)) then
           xDg = (bm_g + mu_g + 1.) * ilamg(k)
