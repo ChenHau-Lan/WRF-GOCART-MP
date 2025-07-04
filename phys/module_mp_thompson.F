@@ -1253,6 +1253,7 @@
                nwfa1d(k) = 11.1E6/rho(k)
                nifa1d(k) = naIN1*0.01/rho(k)
                nbca1d(k) = 5.55E6/rho(k)
+               nhphoa1d(k) = 0.0 ! C.H. Lan 07.04.2025
             enddo
          endif
 
@@ -1286,7 +1287,8 @@
 
          call mp_thompson(aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
-                          nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, p1d, w1d, dz1d,  &
+                          nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, nhphoa1d,& ! C.H. Lan 07.04.2025
+                          t1d, p1d, w1d, dz1d,  &
                       pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
                       wetscav_on, rainprod1d, evapprod1d, &
@@ -1515,6 +1517,7 @@
       subroutine mp_thompson (aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,       &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, &
+                          nhphoa1d,                                       & ! C.H. Lan 2025
                           t1d, p1d, w1d, dzq,                             &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
