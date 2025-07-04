@@ -1213,6 +1213,23 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  end do Loop_j2
               end do Loop_k2
 
+              ! C.H. Lan 07.04.2025
+              deallocate (percen_seas1)
+              deallocate (percen_seas2)
+              deallocate (percen_seas3)
+              deallocate (percen_seas4)
+              deallocate (percen_oc_hphi)
+              deallocate (percen_oc_hpho)
+              deallocate (percen_so4)
+              deallocate (percen_bc_hphi)
+              deallocate (percen_bc_hpho)
+              deallocate (percen_dust1)
+              deallocate (percen_dust2)
+              deallocate (percen_dust3)
+              deallocate (percen_dust4)
+              deallocate (percen_dust5)
+              deallocate (qnhphoa_curr)
+
               if (pert_thom .and. multi_perturb == 1) then
                 call Remove_multi_perturb_mp_perturbations (perts_qvapor, perts_qcloud, perts_qice, &
                   perts_qsnow, perts_ni, pert_thom_qv, pert_thom_qc, pert_thom_qi, pert_thom_qs, &
