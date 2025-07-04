@@ -1547,7 +1547,8 @@
 !..Local variables
       REAL, DIMENSION(kts:kte):: tten, qvten, qcten, qiten, qrten,            &
            qsten, qgten, qbten, niten, nrten, ncten, ngten, nwfaten, nifaten, &
-                                                              nbcaten
+                                                              nbcaten, &
+                                                              nhphoaten ! C.H. Lan 07.04.2025
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: prw_vcd
 
