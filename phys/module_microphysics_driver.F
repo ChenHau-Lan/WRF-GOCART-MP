@@ -1082,6 +1082,39 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                allocate (percen_bc_hphi(its:ite, kts:kte, jts:jte))
                allocate (percen_bc_hpho(its:ite, kts:kte, jts:jte))
                allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
+               ! C.H. Lan 07.04.2025
+               Loop_j: do j = jts, jte
+               Loop_k: do k = kts, kte
+                  Loop_i: do i = its, ite
+                     ! Water friendly
+                     percen_seas1(i, k, j) = chem(i, k, j, p_seas_1) * MICROG2KG * MASS2NUMBER_SEASALT(2)
+                     percen_seas2(i, k, j) = chem(i, k, j, p_seas_2) * MICROG2KG * MASS2NUMBER_SEASALT(3)
+                     percen_seas3(i, k, j) = chem(i, k, j, p_seas_3) * MICROG2KG * MASS2NUMBER_SEASALT(4)
+                     percen_seas4(i, k, j) = chem(i, k, j, p_seas_4) * MICROG2KG * MASS2NUMBER_SEASALT(5)
+                     percen_oc_hphi(i, k, j) = chem(i, k, j, p_oc2) * MICROG2KG * MASS2NUMBER_OC
+                     percen_so4(i, k, j) = chem(i, k, j, p_sulf) * MICROG2KG * MASS2NUMBER_SO4
+                     percen_bc_hphi(i, k, j) = chem(i, k, j, p_bc2) * MICROG2KG * MASS2NUMBER_BC
+                     qnwfa_curr(i, k, j) = percen_seas1(i, k, j) + percen_seas2(i, k, j) + percen_seas3(i, k, j) + &
+                                             percen_seas4(i, k, j) + percen_oc_hphi(i, k, j) + percen_so4(i, k, j) + &
+                                             percen_bc_hphi(i, k, j)
+                     ! ice friendly
+                     percen_dust1(i, k, j) = chem(i, k, j, p_dust_1) * MICROG2KG * MASS2NUMBER_DUST(1)
+                     percen_dust2(i, k, j) = chem(i, k, j, p_dust_2) * MICROG2KG * MASS2NUMBER_DUST(2)
+                     percen_dust3(i, k, j) = chem(i, k, j, p_dust_3) * MICROG2KG * MASS2NUMBER_DUST(3)
+                     percen_dust4(i, k, j) = chem(i, k, j, p_dust_4) * MICROG2KG * MASS2NUMBER_DUST(4)
+                     percen_dust5(i, k, j) = chem(i, k, j, p_dust_5) * MICROG2KG * MASS2NUMBER_DUST(5)
+                     qnifa_curr(i, k, j) = percen_dust1(i, k, j) + percen_dust2(i, k, j) + percen_dust3(i, k, j) + &
+                                             percen_dust4(i, k, j) + percen_dust5(i, k, j) 
+                     ! hydrophobic aerosols
+                     percen_oc_hpho(i, k, j) = chem(i, k, j, p_oc1) * MICROG2KG * MASS2NUMBER_OC
+                     percen_bc_hpho(i, k, j) = chem(i, k, j, p_bc1) * MICROG2KG * MASS2NUMBER_BC
+                     qnbca_curr(i, k, j) = percen_oc_hpho(i, k, j) + percen_bc_hpho(i, k, j)
+                  end do Loop_i
+               end do Loop_k
+            end do Loop_j
+            ! write(0,*)'sum nwfa', SUM(qnwfa_curr(its:ite,kts:kte,jts:jte))
+            ! write(0,*)'sum nhphoa', SUM(qnbca_curr(its:ite,kts:kte,jts:jte))
+            ! CALL wrf_debug ( 100 , 'microphysics_driver: calling thompson coupling GOCART' )
              CALL mp_gt_driver(                          &
                      QV=qv_curr,                         &
                      QC=qc_curr,                         &
