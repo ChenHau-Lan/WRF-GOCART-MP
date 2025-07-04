@@ -3243,7 +3243,8 @@
          ocp(k) = 1./(Cp*(1.+0.887*qv(k)))
          lvt2(k)=lvap(k)*lvap(k)*ocp(k)*oRv*otemp*otemp
 
-         nwfa(k) = MAX(11.1E6, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
+         !nwfa(k) = MAX(11.1E6, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
+         nwfa(k) = MAX(0.0, (nwfa1d(k) + nwfaten(k)*DT)*rho(k)) ! C.H. Lan 07.04.2025
       enddo
 
       do k = kts, kte
