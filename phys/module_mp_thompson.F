@@ -1689,6 +1689,7 @@
          nwfaten(k) = 0.
          nifaten(k) = 0.
          nbcaten(k) = 0.
+         nhphoaten(k) = 0. ! C.H. Lan 07.04.2025
 
          prw_vcd(k) = 0.
 
@@ -1775,6 +1776,10 @@
          pnb_rcb(k) = 0.
          pnb_scb(k) = 0.
          pnb_gcb(k) = 0.
+
+         pnp_rcp(k) = 0.
+         pnp_scp(k) = 0.
+         pnp_gcp(k) = 0.
       enddo
 #if ( WRF_CHEM == 1 )
     if ( wetscav_on ) then
