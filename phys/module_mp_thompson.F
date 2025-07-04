@@ -1585,7 +1585,8 @@
 
       REAL, DIMENSION(kts:kte):: temp, twet, pres, qv
       REAL, DIMENSION(kts:kte):: rc, ri, rr, rs, rg, rb
-      REAL, DIMENSION(kts:kte):: ni, nr, nc, ns, ng, nwfa, nifa, nbca
+      REAL, DIMENSION(kts:kte):: ni, nr, nc, ns, ng, nwfa, nifa, nbca, &
+           nhphoa ! C.H. Lan 07.04.2025
       REAL, DIMENSION(kts:kte):: rho, rhof, rhof2
       REAL, DIMENSION(kts:kte):: qvs, qvsi, delQvs
       REAL, DIMENSION(kts:kte):: satw, sati, ssatw, ssati
