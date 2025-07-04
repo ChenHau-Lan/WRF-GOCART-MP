@@ -2998,6 +2998,8 @@
                        + pna_gca(k) + pni_iha(k)) * orho
             nifaten(k) = nifaten(k) - (pnd_rcd(k) + pnd_scd(k)          &
                        + pnd_gcd(k)) * orho
+            nhphoaten(k) = nhphoaten(k) - (pnp_rcp(k) + pnp_scp(k)      & ! C.H. Lan 07.04.2025
+                        + pnp_gcp(k)) * orho
             if (wif_input_opt .eq. 2) then
                nbcaten(k) = nbcaten(k) - (pnb_rcb(k) + pnb_scb(k)       &
                           + pnb_gcb(k)) * orho
