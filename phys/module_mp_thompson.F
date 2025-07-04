@@ -1341,6 +1341,7 @@
                else
                   nbca(i,k,j) = 0.0
                endif
+               nbca(i,k,j) = nhphoa1d(k) ! C.H. Lan 07.04.2025
             enddo
          endif
          if (is_hail_aware) then
