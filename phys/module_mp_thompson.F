@@ -1533,7 +1533,8 @@
       INTEGER, INTENT(IN):: kts, kte, ii, jj
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
-                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d
+                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, &
+                          nhphoa1d ! C.H. Lan 07.04.2025
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
