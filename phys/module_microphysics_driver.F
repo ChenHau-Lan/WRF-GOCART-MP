@@ -1066,23 +1066,22 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  qi_b4mp(its:ite,kts:kte,jts:jte) = qi_curr(its:ite,kts:kte,jts:jte)
                  qs_b4mp(its:ite,kts:kte,jts:jte) = qs_curr(its:ite,kts:kte,jts:jte)
 #endif
-            ! C.H. Lan 07.04.2025
-            allocate (percen_dust1(its:ite, kts:kte, jts:jte))
-            allocate (percen_dust2(its:ite, kts:kte, jts:jte))
-            allocate (percen_dust3(its:ite, kts:kte, jts:jte))
-            allocate (percen_dust4(its:ite, kts:kte, jts:jte))
-            allocate (percen_dust5(its:ite, kts:kte, jts:jte))
-            allocate (percen_seas1(its:ite, kts:kte, jts:jte))
-            allocate (percen_seas2(its:ite, kts:kte, jts:jte))
-            allocate (percen_seas3(its:ite, kts:kte, jts:jte))
-            allocate (percen_seas4(its:ite, kts:kte, jts:jte))
-            allocate (percen_oc_hphi(its:ite, kts:kte, jts:jte))
-            allocate (percen_oc_hpho(its:ite, kts:kte, jts:jte))
-            allocate (percen_so4(its:ite, kts:kte, jts:jte))
-            allocate (percen_bc_hphi(its:ite, kts:kte, jts:jte))
-            allocate (percen_bc_hpho(its:ite, kts:kte, jts:jte))
-            allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
-
+               ! C.H. Lan 07.04.2025
+               allocate (percen_dust1(its:ite, kts:kte, jts:jte))
+               allocate (percen_dust2(its:ite, kts:kte, jts:jte))
+               allocate (percen_dust3(its:ite, kts:kte, jts:jte))
+               allocate (percen_dust4(its:ite, kts:kte, jts:jte))
+               allocate (percen_dust5(its:ite, kts:kte, jts:jte))
+               allocate (percen_seas1(its:ite, kts:kte, jts:jte))
+               allocate (percen_seas2(its:ite, kts:kte, jts:jte))
+               allocate (percen_seas3(its:ite, kts:kte, jts:jte))
+               allocate (percen_seas4(its:ite, kts:kte, jts:jte))
+               allocate (percen_oc_hphi(its:ite, kts:kte, jts:jte))
+               allocate (percen_oc_hpho(its:ite, kts:kte, jts:jte))
+               allocate (percen_so4(its:ite, kts:kte, jts:jte))
+               allocate (percen_bc_hphi(its:ite, kts:kte, jts:jte))
+               allocate (percen_bc_hpho(its:ite, kts:kte, jts:jte))
+               allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
              CALL mp_gt_driver(                          &
                      QV=qv_curr,                         &
                      QC=qc_curr,                         &
