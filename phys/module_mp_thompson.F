@@ -2506,6 +2506,11 @@
               pnb_gcb(k) = MIN(DBLE(nbca(k)*odts), pnb_gcb(k))
             endif
           endif
+          ! hail wet scavenging for hydrophobic aerosols C.H. Lan 07.04.2025
+          Ef_ga = Eff_aero(xDg,0.0236E-6,visco(k),rho(k),temp(k),'g')
+          pnp_gcp(k) = rhof(k)*t1_qg_qc*Ef_ga*nhphoa(k)*N0_g(k)           &
+                        *ilamg(k)**cge(9,idx_bg(k))
+          pnp_gcp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_gcp(k))
          endif
 
 !..Rain collecting snow.  Cannot assume Wisner (1972) approximation
