@@ -1816,8 +1816,9 @@
          rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
          if (is_aerosol_aware) then
             if (aer_init_opt .lt. 2) then  ! Constant or climatology (e.g., GOCART)
-               nwfa(k) = MAX(11.1E6, MIN(9999.E6, nwfa1d(k)*rho(k)))
-               nifa(k) = MAX(naIN1*0.01, MIN(9999.E6, nifa1d(k)*rho(k)))
+               nwfa(k) = MAX(0.0, nwfa1d(k)*rho(k))
+               nifa(k) = MAX(0.0, nifa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
+               nhphoa(k) = MAX(0.0, nhphoa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then  ! Considering BC aerosol
                   nbca(k) = MAX(5.55E6, MIN(9999.E6, nbca1d(k)*rho(k)))
                else
@@ -1826,6 +1827,7 @@
             else   ! First guess (e.g., GEOS-5)
                nwfa(k) = MAX(0.0, nwfa1d(k)*rho(k))
                nifa(k) = MAX(0.0, nifa1d(k)*rho(k))
+               nhphoa(k) = MAX(0.0, nhphoa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then  ! Considering BC aerosol
                   nbca(k) = MAX(0.0, nbca1d(k)*rho(k))
                else
