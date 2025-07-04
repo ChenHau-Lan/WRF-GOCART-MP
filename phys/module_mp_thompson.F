@@ -2246,6 +2246,13 @@
               pnb_rcb(k) = MIN(DBLE(nbca(k)*odts), pnb_rcb(k))
             endif
           endif
+
+          ! add wet scavenging of hydrophobic aerosols  C.H Lan 07.04.2025
+          Ef_ra = Eff_aero(mvd_r(k),0.0236E-6,visco(k),rho(k),temp(k),'r')
+          pnp_rcp(k) = rhof(k)*t1_qr_qc*Ef_ra*nhphoa(k)*N0_r(k)           &
+                         *((lamr+fv_r)**(-cre(9)))
+          pnp_rcp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_rcp(k))
+
          endif
 
       enddo
