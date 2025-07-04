@@ -1126,7 +1126,7 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      ! change to percentage
                      percen_oc_hpho(i, k, j) = percen_oc_hpho(i, k, j) / qnbca_curr(i, k, j)
                      percen_bc_hpho(i, k, j) = percen_bc_hpho(i, k, j) / qnbca_curr(i, k, j)
-                     
+
                   end do Loop_i
                end do Loop_k
             end do Loop_j
@@ -1183,6 +1183,35 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  IDS=ids,IDE=ide, JDS=jds,JDE=jde, KDS=kds,KDE=kde, &
                  IMS=ims,IME=ime, JMS=jms,JME=jme, KMS=kms,KME=kme, &
                  ITS=its,ITE=ite, JTS=jts,JTE=jte, KTS=kts,KTE=kte)
+
+                 ! C.H. Lan 07.04.2025
+                 Loop_k2: do k = kts, kte
+                 Loop_j2: do j = jts, jte
+                    Loop_i2: do i = its, ite
+                       ! Water friendly
+                       if (qnwfa_curr(i, k, j) /= 11.1E6 .and. qnwfa_curr(i, k, j) /= 9999.E6) then
+                          chem(i, k, j, p_seas_1) =  qnwfa_curr(i, k, j) * percen_seas1(i, k, j) / MASS2NUMBER_SEASALT(2) / MICROG2KG
+                          chem(i, k, j, p_seas_2) =  qnwfa_curr(i, k, j) * percen_seas2(i, k, j) / MASS2NUMBER_SEASALT(3) / MICROG2KG
+                          chem(i, k, j, p_seas_3) =  qnwfa_curr(i, k, j) * percen_seas3(i, k, j) / MASS2NUMBER_SEASALT(4) / MICROG2KG
+                          chem(i, k, j, p_seas_4) =  qnwfa_curr(i, k, j) * percen_seas4(i, k, j) / MASS2NUMBER_SEASALT(5) / MICROG2KG
+                          chem(i, k, j, p_oc2) =  qnwfa_curr(i, k, j) * percen_oc_hphi(i, k, j) / MASS2NUMBER_OC / MICROG2KG
+                          chem(i, k, j, p_sulf) =  qnwfa_curr(i, k, j) * percen_so4(i, k, j) / MASS2NUMBER_SO4 / MICROG2KG
+                          chem(i, k, j, p_bc2) =  qnwfa_curr(i, k, j) * percen_bc_hphi(i, k, j) / MASS2NUMBER_BC / MICROG2KG   
+                       endif
+                       ! ice friendly
+                       if (qnifa_curr(i, k, j) /= 0.5E6*0.01 .and. qnifa_curr(i, k, j) /= 9999.E6) then
+                          chem(i, k, j, p_dust_1) =  qnifa_curr(i, k, j) * percen_dust1(i, k, j) / MASS2NUMBER_DUST(1) / MICROG2KG
+                          chem(i, k, j, p_dust_2) =  qnifa_curr(i, k, j) * percen_dust2(i, k, j) / MASS2NUMBER_DUST(2) / MICROG2KG
+                          chem(i, k, j, p_dust_3) =  qnifa_curr(i, k, j) * percen_dust3(i, k, j) / MASS2NUMBER_DUST(3) / MICROG2KG
+                          chem(i, k, j, p_dust_4) =  qnifa_curr(i, k, j) * percen_dust4(i, k, j) / MASS2NUMBER_DUST(4) / MICROG2KG
+                          chem(i, k, j, p_dust_5) =  qnifa_curr(i, k, j) * percen_dust5(i, k, j) / MASS2NUMBER_DUST(5) / MICROG2KG
+                       endif
+                     ! hydrophobic aerosols
+                       chem(i, k, j, p_oc1) =  qnbca_curr(i, k, j) * percen_oc_hpho(i, k, j) / MASS2NUMBER_OC / MICROG2KG
+                       chem(i, k, j, p_bc1) =  qnbca_curr(i, k, j) * percen_bc_hpho(i, k, j) / MASS2NUMBER_BC / MICROG2KG
+                    end do Loop_i2
+                 end do Loop_j2
+              end do Loop_k2
 
               if (pert_thom .and. multi_perturb == 1) then
                 call Remove_multi_perturb_mp_perturbations (perts_qvapor, perts_qcloud, perts_qice, &
