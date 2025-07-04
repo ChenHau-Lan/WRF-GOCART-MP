@@ -1838,6 +1838,7 @@
             nwfa(k) = MAX(11.1E6, MIN(9999.E6, nwfa1d(k)*rho(k)))
             nifa(k) = MAX(naIN1*0.01, MIN(9999.E6, nifa1d(k)*rho(k)))
             nbca(k) = MAX(5.55E6, MIN(9999.E6, nbca1d(k)*rho(k)))
+            nhphoa(k) = MAX(0.0, nhphoa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
          endif
 
          if (qc1d(k) .gt. R1) then
