@@ -1239,6 +1239,7 @@
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
+               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = nbca(i,k,j)
                else
