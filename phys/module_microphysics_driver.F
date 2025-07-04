@@ -794,6 +794,11 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
    REAL :: constants_irrigation,tloc,irr_start,phase
    INTEGER, OPTIONAL, DIMENSION( ims:ime , jms:jme ), INTENT(INOUT) :: irr_rand_field
 
+   ! C.H. Lan 07.04.2025
+   real, dimension(:, :, :), allocatable :: percen_dust1, percen_dust2, percen_dust3, percen_dust4, percen_dust5, &
+       percen_seas1, percen_seas2, percen_seas3, percen_seas4, percen_oc_hphi, percen_oc_hpho, percen_so4, &
+       percen_bc_hphi, percen_bc_hpho, qnhphoa_curr  
+
 !---------------------------------------------------------------------
 !  check for microphysics type.  We need a clean way to
 !  specify these things!
@@ -1061,6 +1066,23 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                  qi_b4mp(its:ite,kts:kte,jts:jte) = qi_curr(its:ite,kts:kte,jts:jte)
                  qs_b4mp(its:ite,kts:kte,jts:jte) = qs_curr(its:ite,kts:kte,jts:jte)
 #endif
+            ! C.H. Lan 07.04.2025
+            allocate (percen_dust1(its:ite, kts:kte, jts:jte))
+            allocate (percen_dust2(its:ite, kts:kte, jts:jte))
+            allocate (percen_dust3(its:ite, kts:kte, jts:jte))
+            allocate (percen_dust4(its:ite, kts:kte, jts:jte))
+            allocate (percen_dust5(its:ite, kts:kte, jts:jte))
+            allocate (percen_seas1(its:ite, kts:kte, jts:jte))
+            allocate (percen_seas2(its:ite, kts:kte, jts:jte))
+            allocate (percen_seas3(its:ite, kts:kte, jts:jte))
+            allocate (percen_seas4(its:ite, kts:kte, jts:jte))
+            allocate (percen_oc_hphi(its:ite, kts:kte, jts:jte))
+            allocate (percen_oc_hpho(its:ite, kts:kte, jts:jte))
+            allocate (percen_so4(its:ite, kts:kte, jts:jte))
+            allocate (percen_bc_hphi(its:ite, kts:kte, jts:jte))
+            allocate (percen_bc_hpho(its:ite, kts:kte, jts:jte))
+            allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
+
              CALL mp_gt_driver(                          &
                      QV=qv_curr,                         &
                      QC=qc_curr,                         &
