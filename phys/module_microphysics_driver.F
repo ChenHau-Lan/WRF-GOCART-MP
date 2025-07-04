@@ -1097,6 +1097,14 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      qnwfa_curr(i, k, j) = percen_seas1(i, k, j) + percen_seas2(i, k, j) + percen_seas3(i, k, j) + &
                                              percen_seas4(i, k, j) + percen_oc_hphi(i, k, j) + percen_so4(i, k, j) + &
                                              percen_bc_hphi(i, k, j)
+                     ! change to percentage
+                     percen_seas1(i, k, j) = percen_seas1(i, k, j) / qnwfa_curr(i, k, j)
+                     percen_seas2(i, k, j) = percen_seas2(i, k, j) / qnwfa_curr(i, k, j)
+                     percen_seas3(i, k, j) = percen_seas3(i, k, j) / qnwfa_curr(i, k, j)
+                     percen_seas4(i, k, j) = percen_seas4(i, k, j) / qnwfa_curr(i, k, j)
+                     percen_oc_hphi(i, k, j) = percen_oc_hphi(i, k, j) / qnwfa_curr(i, k, j)
+                     percen_so4(i, k, j) = percen_so4(i, k, j) / qnwfa_curr(i, k, j)
+                     percen_bc_hphi(i, k, j) = percen_bc_hphi(i, k, j) / qnwfa_curr(i, k, j)                        
                      ! ice friendly
                      percen_dust1(i, k, j) = chem(i, k, j, p_dust_1) * MICROG2KG * MASS2NUMBER_DUST(1)
                      percen_dust2(i, k, j) = chem(i, k, j, p_dust_2) * MICROG2KG * MASS2NUMBER_DUST(2)
@@ -1105,10 +1113,20 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      percen_dust5(i, k, j) = chem(i, k, j, p_dust_5) * MICROG2KG * MASS2NUMBER_DUST(5)
                      qnifa_curr(i, k, j) = percen_dust1(i, k, j) + percen_dust2(i, k, j) + percen_dust3(i, k, j) + &
                                              percen_dust4(i, k, j) + percen_dust5(i, k, j) 
+                     ! change to percentage
+                     percen_dust1(i, k, j) = percen_dust1(i, k, j) / qnifa_curr(i, k, j)
+                     percen_dust2(i, k, j) = percen_dust2(i, k, j) / qnifa_curr(i, k, j)
+                     percen_dust3(i, k, j) = percen_dust3(i, k, j) / qnifa_curr(i, k, j)
+                     percen_dust4(i, k, j) = percen_dust4(i, k, j) / qnifa_curr(i, k, j)
+                     percen_dust5(i, k, j) = percen_dust5(i, k, j) / qnifa_curr(i, k, j)
                      ! hydrophobic aerosols
                      percen_oc_hpho(i, k, j) = chem(i, k, j, p_oc1) * MICROG2KG * MASS2NUMBER_OC
                      percen_bc_hpho(i, k, j) = chem(i, k, j, p_bc1) * MICROG2KG * MASS2NUMBER_BC
                      qnbca_curr(i, k, j) = percen_oc_hpho(i, k, j) + percen_bc_hpho(i, k, j)
+                     ! change to percentage
+                     percen_oc_hpho(i, k, j) = percen_oc_hpho(i, k, j) / qnbca_curr(i, k, j)
+                     percen_bc_hpho(i, k, j) = percen_bc_hpho(i, k, j) / qnbca_curr(i, k, j)
+                     
                   end do Loop_i
                end do Loop_k
             end do Loop_j
