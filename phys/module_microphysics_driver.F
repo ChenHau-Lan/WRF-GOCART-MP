@@ -1133,6 +1133,14 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                                              chem(i, k, j, p_oc2)*RHO_OC + &
                                              chem(i, k, j, p_sulf)*RHO_SO4 + &
                                              chem(i, k, j, p_bc2)*RHO_BC
+                     ! C.H. Lan 07.07.2025, calculate the mean radius of water friendly aerosols
+                     rm_gocart(i, k, j) = (chem(i, k, j, p_seas_1)*RHO_SEASALT*RADIUS_SEASALT1 + &
+                                          chem(i, k, j, p_seas_2)*RHO_SEASALT*RADIUS_SEASALT2 + &
+                                          chem(i, k, j, p_seas_3)*RHO_SEASALT*RADIUS_SEASALT3 + &
+                                          chem(i, k, j, p_seas_4)*RHO_SEASALT*RADIUS_SEASALT4 + &
+                                          chem(i, k, j, p_oc2)*RHO_OC*RADIUS_OC2 + &
+                                          chem(i, k, j, p_sulf)*RHO_SO4*RADIUS_SO4 + &
+                                          chem(i, k, j, p_bc2)*RHO_BC*RADIUS_BC2) / volume_WFA(i,k,j)                        
                      ! change to percentage
                      percen_seas1(i, k, j) = percen_seas1(i, k, j) / qnwfa_curr(i, k, j)
                      percen_seas2(i, k, j) = percen_seas2(i, k, j) / qnwfa_curr(i, k, j)
