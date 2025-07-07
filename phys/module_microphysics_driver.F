@@ -1106,6 +1106,10 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                allocate (percen_bc_hphi(its:ite, kts:kte, jts:jte))
                allocate (percen_bc_hpho(its:ite, kts:kte, jts:jte))
                allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
+               ! C.H. Lan 07.07.2025
+               allocate (rm_gocart(its:ite, kts:kte, jts:jte))
+               allocate (kappa_gocart(its:ite, kts:kte, jts:jte))
+               allocate (volume_WFA(its:ite, kts:kte, jts:jte))
                ! C.H. Lan 07.04.2025
                Loop_j: do j = jts, jte
                Loop_k: do k = kts, kte
