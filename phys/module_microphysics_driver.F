@@ -20,6 +20,16 @@ MODULE module_microphysics_driver
    real, private, parameter :: RHO_SO4 = 1.7
    real, private, parameter :: RHO_OC = 1.8
    real, private, parameter :: RHO_BC = 1.0
+   ! mean radius of the aerosol,  C.H. Lan 07.07.2025
+   real, private, parameter :: RADIUS_SEASALT1 = 0.3
+   real, private, parameter :: RADIUS_SEASALT2 = 1.0
+   real, private, parameter :: RADIUS_SEASALT3 = 3.2
+   real, private, parameter :: RADIUS_SEASALT4 = 7.5
+   real, private, parameter :: RADIUS_SO4 = 0.399
+   real, private, parameter :: RADIUS_OC1 = 0.087
+   real, private, parameter :: RADIUS_BC1 = 0.087
+   real, private, parameter :: RADIUS_OC2 = 0.039
+   real, private, parameter :: RADIUS_BC2 = 0.039
 
 CONTAINS
 
