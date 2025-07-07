@@ -4012,19 +4012,23 @@
          nc1d(k) = MAX(2./rho(k), MIN(nc1d(k) + ncten(k)*DT, Nt_c_max))
          if (is_aerosol_aware) then
             if (aer_init_opt .lt. 2) then
-               nwfa1d(k) = MAX(11.1E6, MIN(9999.E6,                           &
-                             (nwfa1d(k)+nwfaten(k)*DT)))
-               nifa1d(k) = MAX(naIN1*0.01, MIN(9999.E6,                       &
-                             (nifa1d(k)+nifaten(k)*DT)))
+               ! nwfa1d(k) = MAX(11.1E6, MIN(9999.E6,                           &
+               !               (nwfa1d(k)+nwfaten(k)*DT)))
+               ! nifa1d(k) = MAX(naIN1*0.01, MIN(9999.E6,                       &
+               !               (nifa1d(k)+nifaten(k)*DT)))
+               nwfa1d(k) = MAX(0.0, (nwfa1d(k)+nwfaten(k)*DT))
+               nifa1d(k) = MAX(0.0, (nifa1d(k)+nifaten(k)*DT))
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = MAX(5.55E6, MIN(9999.E6,                        &
                                 (nbca1d(k)+nbcaten(k)*DT)))
                else
                   nbca1d(k) = 0.0
                endif
+               nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 07.04.2025
             else
                nwfa1d(k) = MAX(0.0, (nwfa1d(k)+nwfaten(k)*DT))
                nifa1d(k) = MAX(0.0, (nifa1d(k)+nifaten(k)*DT))
+               nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = MAX(0.0, (nbca1d(k)+nbcaten(k)*DT))
                else
@@ -4038,6 +4042,7 @@
                           (nifa1d(k)+nifaten(k)*DT)))
             nbca1d(k) = MAX(5.55E6, MIN(9999.E6,                           &
                           (nbca1d(k)+nbcaten(k)*DT)))
+            nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 07.04.2025          
          endif
 
          if (qc1d(k) .le. R1) then
