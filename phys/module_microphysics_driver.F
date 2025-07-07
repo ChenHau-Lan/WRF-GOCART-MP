@@ -1281,6 +1281,9 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
               deallocate (percen_dust4)
               deallocate (percen_dust5)
               deallocate (qnhphoa_curr)
+              deallocate (rm_gocart)
+              deallocate (kappa_gocart)
+              deallocate (volume_WFA) ! C.H. Lan 07.07.2025
 
               if (pert_thom .and. multi_perturb == 1) then
                 call Remove_multi_perturb_mp_perturbations (perts_qvapor, perts_qcloud, perts_qice, &
