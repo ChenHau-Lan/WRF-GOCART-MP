@@ -14,6 +14,12 @@ MODULE module_microphysics_driver
    real, private, parameter  :: MASS2NUMBER_OC = 9.7576e+17
    real, private, parameter  :: MASS2NUMBER_BC = 1.5002e+19
    real, private, parameter :: MICROG2KG = 1.0e-9 
+   ! assume the aerosol density is constant, C.H. Lan 07.07.2025
+   real, private, parameter :: RHO_DUST = 2.6
+   real, private, parameter :: RHO_SEASALT = 2.2
+   real, private, parameter :: RHO_SO4 = 1.7
+   real, private, parameter :: RHO_OC = 1.8
+   real, private, parameter :: RHO_BC = 1.0
 
 CONTAINS
 
