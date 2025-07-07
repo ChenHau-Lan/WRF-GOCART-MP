@@ -818,7 +818,10 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
    ! C.H. Lan 07.04.2025
    real, dimension(:, :, :), allocatable :: percen_dust1, percen_dust2, percen_dust3, percen_dust4, percen_dust5, &
        percen_seas1, percen_seas2, percen_seas3, percen_seas4, percen_oc_hphi, percen_oc_hpho, percen_so4, &
-       percen_bc_hphi, percen_bc_hpho, qnhphoa_curr  
+       percen_bc_hphi, percen_bc_hpho, qnhphoa_curr
+   ! C.H. Lan 07.07.2025
+   real, dimension(:, :, :), allocatable :: rm_gocart, kappa_gocart, volume_WFA
+  
 
 !---------------------------------------------------------------------
 !  check for microphysics type.  We need a clean way to
