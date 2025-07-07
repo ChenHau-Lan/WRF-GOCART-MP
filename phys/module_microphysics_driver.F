@@ -30,6 +30,11 @@ MODULE module_microphysics_driver
    real, private, parameter :: RADIUS_BC1 = 0.087
    real, private, parameter :: RADIUS_OC2 = 0.039
    real, private, parameter :: RADIUS_BC2 = 0.039
+   ! kappa of the aerosol
+   real, private, parameter :: KAPPA_SEASALT = 1.28
+   real, private, parameter :: KAPPA_SO4 = 0.8
+   real, private, parameter :: KAPPA_OC2 = 0.1
+   real, private, parameter :: KAPPA_BC2 = 0.05
 
 CONTAINS
 
