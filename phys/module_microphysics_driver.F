@@ -1125,6 +1125,14 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      qnwfa_curr(i, k, j) = percen_seas1(i, k, j) + percen_seas2(i, k, j) + percen_seas3(i, k, j) + &
                                              percen_seas4(i, k, j) + percen_oc_hphi(i, k, j) + percen_so4(i, k, j) + &
                                              percen_bc_hphi(i, k, j)
+                     ! C.H. Lan 07.07.2025, calculate the volume of water friendly aerosols                        
+                     volume_WFA(i, k, j) = chem(i, k, j, p_seas_1)*RHO_SEASALT + &
+                                             chem(i, k, j, p_seas_2)*RHO_SEASALT + &
+                                             chem(i, k, j, p_seas_3)*RHO_SEASALT + &
+                                             chem(i, k, j, p_seas_4)*RHO_SEASALT + &
+                                             chem(i, k, j, p_oc2)*RHO_OC + &
+                                             chem(i, k, j, p_sulf)*RHO_SO4 + &
+                                             chem(i, k, j, p_bc2)*RHO_BC
                      ! change to percentage
                      percen_seas1(i, k, j) = percen_seas1(i, k, j) / qnwfa_curr(i, k, j)
                      percen_seas2(i, k, j) = percen_seas2(i, k, j) / qnwfa_curr(i, k, j)
