@@ -1294,6 +1294,7 @@
          call mp_thompson(aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
                           nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, nhphoa1d,& ! C.H. Lan 07.04.2025
+                          kappa1d, rmg1d,                             & ! C.H. Lan 07.07.2025
                           t1d, p1d, w1d, dz1d,  &
                       pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1525,6 +1526,7 @@
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,       &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, &
                           nhphoa1d,                                       & ! C.H. Lan 2025
+                          kappa1d, rmg1d,                                 & ! C.H. Lan 07.07.2025
                           t1d, p1d, w1d, dzq,                             &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1540,7 +1542,8 @@
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, &
-                          nhphoa1d ! C.H. Lan 07.04.2025
+                          nhphoa1d,                                     & ! C.H. Lan 07.04.2025
+                          kappa1d, rmg1d                                  ! C.H. Lan 07.07.2025
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
