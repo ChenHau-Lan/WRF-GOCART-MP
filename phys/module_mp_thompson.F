@@ -1096,6 +1096,8 @@
                           qv, qc, qr, qi, qs, qg, ni, nr, th
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
                           nc, nwfa, nifa, nbca, qb, ng
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+                     RMGOCART, KAPGOCART ! C.H. Lan 07.07.2025
       REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d, &
                                                                 nbca2d
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
@@ -1125,6 +1127,7 @@
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d,&
                           nhphoa1d,                                     & ! C.H. Lan 07.04.2025
+                          kappa1d, rmg1d,                                & ! C.H. Lan 07.07.2025
                           t1d, p1d, w1d, dz1d, rho, dBZ
       REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
 #if ( WRF_CHEM == 1 )
