@@ -1069,6 +1069,7 @@
 !+---+-----------------------------------------------------------------+
       SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,&
                               nwfa, nifa, nbca, nwfa2d, nifa2d, nbca2d,  &
+                              RMGOCART, KAPGOCART,                       & ! C.H. Lan 2025
                               aer_init_opt, wif_input_opt,               &
                               th, pii, p, w, dz,                         &
                               dt_in, itimestep,                          &

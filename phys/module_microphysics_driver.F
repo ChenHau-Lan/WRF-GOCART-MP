@@ -1201,6 +1201,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      NWFA2D=qnwfa2d,                     &
                      NIFA2D=qnifa2d,                     &
                      NBCA2D=qnbca2d,                     &
+                     RMGOCART=rm_gocart,                 &
+                     KAPGOCART=kappa_gocart,             &
                      aer_init_opt=config_flags%aer_init_opt,   &
                      wif_input_opt=config_flags%wif_input_opt, &
                      TH=th,                              &
@@ -1345,6 +1347,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      NWFA2D=qnwfa2d,                     &
                      NIFA2D=qnifa2d,                     &
                      NBCA2D=qnbca2d,                     &
+                     RMGOCART=rm_gocart,                 &
+                     KAPGOCART=kappa_gocart,             &
                      aer_init_opt=config_flags%aer_init_opt,   &
                      wif_input_opt=config_flags%wif_input_opt, &
                      TH=th,                              &
