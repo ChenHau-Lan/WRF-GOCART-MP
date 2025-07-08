@@ -19,7 +19,9 @@ configure.wrf*
 *.backup
 *.f90
 chem/module_kpp*.F
-
+namelist.input.backup*
+compile.log
+compile.error
 
 # Out-of-source build locations
 _build*

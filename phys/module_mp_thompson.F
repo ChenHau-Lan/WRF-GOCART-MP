@@ -1069,6 +1069,7 @@
 !+---+-----------------------------------------------------------------+
       SUBROUTINE mp_gt_driver(qv, qc, qr, qi, qs, qg, qb, ni, nr, nc, ng,&
                               nwfa, nifa, nbca, nwfa2d, nifa2d, nbca2d,  &
+                              RMGOCART, KAPGOCART,                       & ! C.H. Lan 2025
                               aer_init_opt, wif_input_opt,               &
                               th, pii, p, w, dz,                         &
                               dt_in, itimestep,                          &
@@ -1095,6 +1096,8 @@
                           qv, qc, qr, qi, qs, qg, ni, nr, th
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
                           nc, nwfa, nifa, nbca, qb, ng
+      REAL, DIMENSION(ims:ime, kms:kme, jms:jme), OPTIONAL, INTENT(INOUT):: &
+                     RMGOCART, KAPGOCART ! C.H. Lan 07.07.2025
       REAL, DIMENSION(ims:ime, jms:jme), OPTIONAL, INTENT(IN):: nwfa2d, nifa2d, &
                                                                 nbca2d
       REAL, DIMENSION(ims:ime, kms:kme, jms:jme), INTENT(INOUT):: &
@@ -1123,6 +1126,8 @@
       REAL, DIMENSION(kts:kte):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d,&
+                          nhphoa1d,                                     & ! C.H. Lan 07.04.2025
+                          kappa1d, rmg1d,                                & ! C.H. Lan 07.07.2025
                           t1d, p1d, w1d, dz1d, rho, dBZ
       REAL, DIMENSION(kts:kte):: re_qc1d, re_qi1d, re_qs1d
 #if ( WRF_CHEM == 1 )
@@ -1238,6 +1243,9 @@
                nc1d(k) = nc(i,k,j)
                nwfa1d(k) = nwfa(i,k,j)
                nifa1d(k) = nifa(i,k,j)
+               nhphoa1d(k) = nbca(i,k,j) ! C.H. Lan 07.04.2025
+               kappa1d(k) = KAPGOCART(i,k,j) ! C.H. Lan 07.07.2025   
+               rmg1d(k) = RMGOCART(i,k,j)  ! C.H. Lan 07.07.2025
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = nbca(i,k,j)
                else
@@ -1251,6 +1259,7 @@
                nwfa1d(k) = 11.1E6/rho(k)
                nifa1d(k) = naIN1*0.01/rho(k)
                nbca1d(k) = 5.55E6/rho(k)
+               nhphoa1d(k) = 0.0 ! C.H. Lan 07.04.2025
             enddo
          endif
 
@@ -1284,7 +1293,9 @@
 
          call mp_thompson(aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d, ni1d,     &
-                          nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, p1d, w1d, dz1d,  &
+                          nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, nhphoa1d,& ! C.H. Lan 07.04.2025
+                          kappa1d, rmg1d,                             & ! C.H. Lan 07.07.2025
+                          t1d, p1d, w1d, dz1d,  &
                       pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
                       wetscav_on, rainprod1d, evapprod1d, &
@@ -1317,10 +1328,10 @@
          if (is_aerosol_aware) then
 !..Add anthropogenic emissions
 !-GT        nwfa1d(kts) = nwfa1
-            nwfa1d(kts) = nwfa1d(kts) + nwfa2d(i,j)*dt_in
-            nifa1d(kts) = nifa1d(kts) + nifa2d(i,j)*dt_in
+            nwfa1d(kts) = nwfa1d(kts) !+ nwfa2d(i,j)*dt_in
+            nifa1d(kts) = nifa1d(kts) !+ nifa2d(i,j)*dt_in
             if (wif_input_opt .eq. 2) then
-               nbca1d(kts) = nbca1d(kts) + nbca2d(i,j)*dt_in
+               nbca1d(kts) = nbca1d(kts) !+ nbca2d(i,j)*dt_in !C.H. Lan 07.04.2025
             else
                nbca1d(kts) = 0.0
             endif
@@ -1337,6 +1348,7 @@
                else
                   nbca(i,k,j) = 0.0
                endif
+               nbca(i,k,j) = nhphoa1d(k) ! C.H. Lan 07.04.2025
             enddo
          endif
          if (is_hail_aware) then
@@ -1513,6 +1525,8 @@
       subroutine mp_thompson (aer_init_opt, wif_input_opt, &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,       &
                           ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, &
+                          nhphoa1d,                                       & ! C.H. Lan 2025
+                          kappa1d, rmg1d,                                 & ! C.H. Lan 07.07.2025
                           t1d, p1d, w1d, dzq,                             &
                           pptrain, pptsnow, pptgraul, pptice, &
 #if ( WRF_CHEM == 1 )
@@ -1527,7 +1541,9 @@
       INTEGER, INTENT(IN):: kts, kte, ii, jj
       REAL, DIMENSION(kts:kte), INTENT(INOUT):: &
                           qv1d, qc1d, qi1d, qr1d, qs1d, qg1d, qb1d,     &
-                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d
+                          ni1d, nr1d, nc1d, ng1d, nwfa1d, nifa1d, nbca1d, t1d, &
+                          nhphoa1d,                                     & ! C.H. Lan 07.04.2025
+                          kappa1d, rmg1d                                  ! C.H. Lan 07.07.2025
       REAL, DIMENSION(kts:kte), INTENT(IN):: p1d, w1d, dzq
       REAL, INTENT(INOUT):: pptrain, pptsnow, pptgraul, pptice
       REAL, INTENT(IN):: dt
@@ -1540,7 +1556,8 @@
 !..Local variables
       REAL, DIMENSION(kts:kte):: tten, qvten, qcten, qiten, qrten,            &
            qsten, qgten, qbten, niten, nrten, ncten, ngten, nwfaten, nifaten, &
-                                                              nbcaten
+                                                              nbcaten, &
+                                                              nhphoaten ! C.H. Lan 07.04.2025
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: prw_vcd
 
@@ -1548,7 +1565,7 @@
            pnc_scw, pnc_gcw
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: pna_rca, pna_sca, pna_gca, &
-           pnd_rcd, pnd_scd, pnd_gcd, pnb_rcb, pnb_scb, pnb_gcb
+            pnd_rcd, pnd_scd, pnd_gcd, pnb_rcb, pnb_scb, pnb_gcb, pnp_rcp, pnp_scp, pnp_gcp ! C.H. Lan 07.04.2025
 
       DOUBLE PRECISION, DIMENSION(kts:kte):: prr_wau, prr_rcw, prr_rcs, &
            prr_rcg, prr_sml, prr_gml, &
@@ -1577,7 +1594,8 @@
 
       REAL, DIMENSION(kts:kte):: temp, twet, pres, qv
       REAL, DIMENSION(kts:kte):: rc, ri, rr, rs, rg, rb
-      REAL, DIMENSION(kts:kte):: ni, nr, nc, ns, ng, nwfa, nifa, nbca
+      REAL, DIMENSION(kts:kte):: ni, nr, nc, ns, ng, nwfa, nifa, nbca, &
+           nhphoa ! C.H. Lan 07.04.2025
       REAL, DIMENSION(kts:kte):: rho, rhof, rhof2
       REAL, DIMENSION(kts:kte):: qvs, qvsi, delQvs
       REAL, DIMENSION(kts:kte):: satw, sati, ssatw, ssati
@@ -1680,6 +1698,7 @@
          nwfaten(k) = 0.
          nifaten(k) = 0.
          nbcaten(k) = 0.
+         nhphoaten(k) = 0. ! C.H. Lan 07.04.2025
 
          prw_vcd(k) = 0.
 
@@ -1766,6 +1785,10 @@
          pnb_rcb(k) = 0.
          pnb_scb(k) = 0.
          pnb_gcb(k) = 0.
+
+         pnp_rcp(k) = 0.
+         pnp_scp(k) = 0.
+         pnp_gcp(k) = 0.
       enddo
 #if ( WRF_CHEM == 1 )
     if ( wetscav_on ) then
@@ -1802,8 +1825,9 @@
          rho(k) = 0.622*pres(k)/(R*temp(k)*(qv(k)+0.622))
          if (is_aerosol_aware) then
             if (aer_init_opt .lt. 2) then  ! Constant or climatology (e.g., GOCART)
-               nwfa(k) = MAX(11.1E6, MIN(9999.E6, nwfa1d(k)*rho(k)))
-               nifa(k) = MAX(naIN1*0.01, MIN(9999.E6, nifa1d(k)*rho(k)))
+               nwfa(k) = MAX(0.0, nwfa1d(k)*rho(k))
+               nifa(k) = MAX(0.0, nifa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
+               nhphoa(k) = MAX(0.0, nhphoa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then  ! Considering BC aerosol
                   nbca(k) = MAX(5.55E6, MIN(9999.E6, nbca1d(k)*rho(k)))
                else
@@ -1812,6 +1836,7 @@
             else   ! First guess (e.g., GEOS-5)
                nwfa(k) = MAX(0.0, nwfa1d(k)*rho(k))
                nifa(k) = MAX(0.0, nifa1d(k)*rho(k))
+               nhphoa(k) = MAX(0.0, nhphoa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then  ! Considering BC aerosol
                   nbca(k) = MAX(0.0, nbca1d(k)*rho(k))
                else
@@ -1822,6 +1847,7 @@
             nwfa(k) = MAX(11.1E6, MIN(9999.E6, nwfa1d(k)*rho(k)))
             nifa(k) = MAX(naIN1*0.01, MIN(9999.E6, nifa1d(k)*rho(k)))
             nbca(k) = MAX(5.55E6, MIN(9999.E6, nbca1d(k)*rho(k)))
+            nhphoa(k) = MAX(0.0, nhphoa1d(k)*rho(k)) ! C.H. Lan 07.04.2025
          endif
 
          if (qc1d(k) .gt. R1) then
@@ -2229,6 +2255,13 @@
               pnb_rcb(k) = MIN(DBLE(nbca(k)*odts), pnb_rcb(k))
             endif
           endif
+
+          ! add wet scavenging of hydrophobic aerosols  C.H Lan 07.04.2025
+          Ef_ra = Eff_aero(mvd_r(k),0.0236E-6,visco(k),rho(k),temp(k),'r')
+          pnp_rcp(k) = rhof(k)*t1_qr_qc*Ef_ra*nhphoa(k)*N0_r(k)           &
+                         *((lamr+fv_r)**(-cre(9)))
+          pnp_rcp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_rcp(k))
+
          endif
 
       enddo
@@ -2456,6 +2489,10 @@
               pnb_scb(k) = MIN(DBLE(nbca(k)*odts), pnb_scb(k))
             endif
           endif
+          ! snow wet scavenging for hydrophobic aerosols C.H. Lan 07.04.2025
+          Ef_sa = Eff_aero(xDs,0.0236E-6,visco(k),rho(k),temp(k),'s')
+          pnp_scp(k) = rhof(k)*t1_qs_qc*Ef_sa*nhphoa(k)*smoe(k)
+          pnp_scp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_scp(k))
          endif
          if (rg(k) .gt. r_g(1)) then
           xDg = (bm_g + mu_g + 1.) * ilamg(k)
@@ -2478,6 +2515,11 @@
               pnb_gcb(k) = MIN(DBLE(nbca(k)*odts), pnb_gcb(k))
             endif
           endif
+          ! hail wet scavenging for hydrophobic aerosols C.H. Lan 07.04.2025
+          Ef_ga = Eff_aero(xDg,0.0236E-6,visco(k),rho(k),temp(k),'g')
+          pnp_gcp(k) = rhof(k)*t1_qg_qc*Ef_ga*nhphoa(k)*N0_g(k)           &
+                        *ilamg(k)**cge(9,idx_bg(k))
+          pnp_gcp(k) = MIN(DBLE(nhphoa(k)*odts), pnp_gcp(k))
          endif
 
 !..Rain collecting snow.  Cannot assume Wisner (1972) approximation
@@ -2965,6 +3007,8 @@
                        + pna_gca(k) + pni_iha(k)) * orho
             nifaten(k) = nifaten(k) - (pnd_rcd(k) + pnd_scd(k)          &
                        + pnd_gcd(k)) * orho
+            nhphoaten(k) = nhphoaten(k) - (pnp_rcp(k) + pnp_scp(k)      & ! C.H. Lan 07.04.2025
+                        + pnp_gcp(k)) * orho
             if (wif_input_opt .eq. 2) then
                nbcaten(k) = nbcaten(k) - (pnb_rcb(k) + pnb_scb(k)       &
                           + pnb_gcb(k)) * orho
@@ -3208,7 +3252,8 @@
          ocp(k) = 1./(Cp*(1.+0.887*qv(k)))
          lvt2(k)=lvap(k)*lvap(k)*ocp(k)*oRv*otemp*otemp
 
-         nwfa(k) = MAX(11.1E6, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
+         !nwfa(k) = MAX(11.1E6, (nwfa1d(k) + nwfaten(k)*DT)*rho(k))
+         nwfa(k) = MAX(0.0, (nwfa1d(k) + nwfaten(k)*DT)*rho(k)) ! C.H. Lan 07.04.2025
       enddo
 
       do k = kts, kte
@@ -3413,7 +3458,7 @@
 !+---+-----------------------------------------------------------------+ !  DROPLET NUCLEATION
            if (clap .gt. eps) then
             if (is_aerosol_aware) then
-               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k)))
+               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k),kappa1d(k),rmg1d(k)))
             else
                xnc = Nt_c
             endif
@@ -3976,19 +4021,23 @@
          nc1d(k) = MAX(2./rho(k), MIN(nc1d(k) + ncten(k)*DT, Nt_c_max))
          if (is_aerosol_aware) then
             if (aer_init_opt .lt. 2) then
-               nwfa1d(k) = MAX(11.1E6, MIN(9999.E6,                           &
-                             (nwfa1d(k)+nwfaten(k)*DT)))
-               nifa1d(k) = MAX(naIN1*0.01, MIN(9999.E6,                       &
-                             (nifa1d(k)+nifaten(k)*DT)))
+               ! nwfa1d(k) = MAX(11.1E6, MIN(9999.E6,                           &
+               !               (nwfa1d(k)+nwfaten(k)*DT)))
+               ! nifa1d(k) = MAX(naIN1*0.01, MIN(9999.E6,                       &
+               !               (nifa1d(k)+nifaten(k)*DT)))
+               nwfa1d(k) = MAX(0.0, (nwfa1d(k)+nwfaten(k)*DT))
+               nifa1d(k) = MAX(0.0, (nifa1d(k)+nifaten(k)*DT))
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = MAX(5.55E6, MIN(9999.E6,                        &
                                 (nbca1d(k)+nbcaten(k)*DT)))
                else
                   nbca1d(k) = 0.0
                endif
+               nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 07.04.2025
             else
                nwfa1d(k) = MAX(0.0, (nwfa1d(k)+nwfaten(k)*DT))
                nifa1d(k) = MAX(0.0, (nifa1d(k)+nifaten(k)*DT))
+               nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 07.04.2025
                if (wif_input_opt .eq. 2) then
                   nbca1d(k) = MAX(0.0, (nbca1d(k)+nbcaten(k)*DT))
                else
@@ -4002,6 +4051,7 @@
                           (nifa1d(k)+nifaten(k)*DT)))
             nbca1d(k) = MAX(5.55E6, MIN(9999.E6,                           &
                           (nbca1d(k)+nbcaten(k)*DT)))
+            nhphoa1d(k)  = MAX(0.0, (nhphoa1d(k)+nhphoaten(k)*DT)) ! C.H. Lan 07.04.2025          
          endif
 
          if (qc1d(k) .le. R1) then
@@ -5175,11 +5225,11 @@
 !.. updraft velocity could easily be negative, we could use the temp
 !.. and its tendency to diagnose a pretend postive updraft velocity.
 !+---+-----------------------------------------------------------------+
-      real function activ_ncloud(Tt, Ww, NCCN)
+      real function activ_ncloud(Tt, Ww, NCCN, Ka, Ra)
 
       implicit none
-      REAL, INTENT(IN):: Tt, Ww, NCCN
-      REAL:: n_local, w_local
+      REAL, INTENT(IN):: Tt, Ww, NCCN, Ka, Ra
+      REAL:: n_local, w_local, ka_local, ra_local
       INTEGER:: i, j, k, l, m, n
       REAL:: A, B, C, D, t, u, x1, x2, y1, y2, nx, wy, fraction
 
@@ -5192,6 +5242,8 @@
 
       n_local = NCCN * 1.E-6
       w_local = Ww
+      ka_local = Ka
+      ra_local = Ra
 
       if (n_local .ge. ta_Na(ntb_arc)) then
          n_local = ta_Na(ntb_arc) - 1.0
@@ -5226,8 +5278,26 @@
 !.. should implement other variables to allow more freedom such as
 !.. at least simple separation of tiny size sulfates from larger
 !.. sea salts.
-      l = 3
-      m = 2
+      ! ----- ra_local index -----
+      if (ra_local <= ta_Ra(1)) then
+         l = 1
+      else if (ra_local >= ta_Ra(ntb_arr)) then
+         l = ntb_arr
+      else
+         do l = 2, ntb_arr
+            if (ra_local >= ta_Ra(l-1) .and. ra_local < ta_Ra(l)) exit
+         enddo
+      end if
+      ! ----- ka_local index -----
+      if (ka_local <= ta_Ka(1)) then
+         m = 1
+      else if (ka_local >= ta_Ka(ntb_ark)) then
+         m = ntb_ark
+      else
+         do m = 2, ntb_ark
+            if (ka_local >= ta_Ka(m-1) .and. ka_local < ta_Ka(m)) exit
+         enddo
+      end if
 
       A = tnccn_act(i-1,j-1,k,l,m)
       B = tnccn_act(i,j-1,k,l,m)
