@@ -14,6 +14,27 @@ MODULE module_microphysics_driver
    real, private, parameter  :: MASS2NUMBER_OC = 9.7576e+17
    real, private, parameter  :: MASS2NUMBER_BC = 1.5002e+19
    real, private, parameter :: MICROG2KG = 1.0e-9 
+   ! assume the aerosol density is constant, C.H. Lan 07.07.2025
+   real, private, parameter :: RHO_DUST = 2.6
+   real, private, parameter :: RHO_SEASALT = 2.2
+   real, private, parameter :: RHO_SO4 = 1.7
+   real, private, parameter :: RHO_OC = 1.8
+   real, private, parameter :: RHO_BC = 1.0
+   ! mean radius of the aerosol,  C.H. Lan 07.07.2025
+   real, private, parameter :: RADIUS_SEASALT1 = 0.3
+   real, private, parameter :: RADIUS_SEASALT2 = 1.0
+   real, private, parameter :: RADIUS_SEASALT3 = 3.2
+   real, private, parameter :: RADIUS_SEASALT4 = 7.5
+   real, private, parameter :: RADIUS_SO4 = 0.399
+   real, private, parameter :: RADIUS_OC1 = 0.087
+   real, private, parameter :: RADIUS_BC1 = 0.087
+   real, private, parameter :: RADIUS_OC2 = 0.039
+   real, private, parameter :: RADIUS_BC2 = 0.039
+   ! kappa of the aerosol
+   real, private, parameter :: KAPPA_SEASALT = 1.28
+   real, private, parameter :: KAPPA_SO4 = 0.8
+   real, private, parameter :: KAPPA_OC2 = 0.1
+   real, private, parameter :: KAPPA_BC2 = 0.05
 
 CONTAINS
 
@@ -797,7 +818,10 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
    ! C.H. Lan 07.04.2025
    real, dimension(:, :, :), allocatable :: percen_dust1, percen_dust2, percen_dust3, percen_dust4, percen_dust5, &
        percen_seas1, percen_seas2, percen_seas3, percen_seas4, percen_oc_hphi, percen_oc_hpho, percen_so4, &
-       percen_bc_hphi, percen_bc_hpho, qnhphoa_curr  
+       percen_bc_hphi, percen_bc_hpho, qnhphoa_curr
+   ! C.H. Lan 07.07.2025
+   real, dimension(:, :, :), allocatable :: rm_gocart, kappa_gocart, volume_WFA
+  
 
 !---------------------------------------------------------------------
 !  check for microphysics type.  We need a clean way to
@@ -1082,6 +1106,10 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                allocate (percen_bc_hphi(its:ite, kts:kte, jts:jte))
                allocate (percen_bc_hpho(its:ite, kts:kte, jts:jte))
                allocate (qnhphoa_curr(its:ite, kts:kte, jts:jte))
+               ! C.H. Lan 07.07.2025
+               allocate (rm_gocart(its:ite, kts:kte, jts:jte))
+               allocate (kappa_gocart(its:ite, kts:kte, jts:jte))
+               allocate (volume_WFA(its:ite, kts:kte, jts:jte))
                ! C.H. Lan 07.04.2025
                Loop_j: do j = jts, jte
                Loop_k: do k = kts, kte
@@ -1097,6 +1125,30 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      qnwfa_curr(i, k, j) = percen_seas1(i, k, j) + percen_seas2(i, k, j) + percen_seas3(i, k, j) + &
                                              percen_seas4(i, k, j) + percen_oc_hphi(i, k, j) + percen_so4(i, k, j) + &
                                              percen_bc_hphi(i, k, j)
+                     ! C.H. Lan 07.07.2025, calculate the volume of water friendly aerosols                        
+                     volume_WFA(i, k, j) = chem(i, k, j, p_seas_1)*RHO_SEASALT + &
+                                             chem(i, k, j, p_seas_2)*RHO_SEASALT + &
+                                             chem(i, k, j, p_seas_3)*RHO_SEASALT + &
+                                             chem(i, k, j, p_seas_4)*RHO_SEASALT + &
+                                             chem(i, k, j, p_oc2)*RHO_OC + &
+                                             chem(i, k, j, p_sulf)*RHO_SO4 + &
+                                             chem(i, k, j, p_bc2)*RHO_BC
+                     ! C.H. Lan 07.07.2025, calculate the mean radius of water friendly aerosols
+                     rm_gocart(i, k, j) = (chem(i, k, j, p_seas_1)*RHO_SEASALT*RADIUS_SEASALT1 + &
+                                          chem(i, k, j, p_seas_2)*RHO_SEASALT*RADIUS_SEASALT2 + &
+                                          chem(i, k, j, p_seas_3)*RHO_SEASALT*RADIUS_SEASALT3 + &
+                                          chem(i, k, j, p_seas_4)*RHO_SEASALT*RADIUS_SEASALT4 + &
+                                          chem(i, k, j, p_oc2)*RHO_OC*RADIUS_OC2 + &
+                                          chem(i, k, j, p_sulf)*RHO_SO4*RADIUS_SO4 + &
+                                          chem(i, k, j, p_bc2)*RHO_BC*RADIUS_BC2) / volume_WFA(i,k,j)   
+                     ! C.H. Lan 07.07.2025, calculate the kappa of water friendly aerosols
+                     kappa_gocart(i, k, j) = (chem(i, k, j, p_seas_1)*RHO_SEASALT*KAPPA_SEASALT + &
+                                             chem(i, k, j, p_seas_2)*RHO_SEASALT*KAPPA_SEASALT + &
+                                             chem(i, k, j, p_seas_3)*RHO_SEASALT*KAPPA_SEASALT + &
+                                             chem(i, k, j, p_seas_4)*RHO_SEASALT*KAPPA_SEASALT + &
+                                             chem(i, k, j, p_oc2)*RHO_OC*KAPPA_OC2 + &
+                                             chem(i, k, j, p_sulf)*RHO_SO4*KAPPA_SO4 + &
+                                             chem(i, k, j, p_bc2)*RHO_BC*KAPPA_BC2) / volume_WFA(i,k,j)                                          
                      ! change to percentage
                      percen_seas1(i, k, j) = percen_seas1(i, k, j) / qnwfa_curr(i, k, j)
                      percen_seas2(i, k, j) = percen_seas2(i, k, j) / qnwfa_curr(i, k, j)
@@ -1149,6 +1201,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      NWFA2D=qnwfa2d,                     &
                      NIFA2D=qnifa2d,                     &
                      NBCA2D=qnbca2d,                     &
+                     RMGOCART=rm_gocart,                 &
+                     KAPGOCART=kappa_gocart,             &
                      aer_init_opt=config_flags%aer_init_opt,   &
                      wif_input_opt=config_flags%wif_input_opt, &
                      TH=th,                              &
@@ -1229,6 +1283,9 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
               deallocate (percen_dust4)
               deallocate (percen_dust5)
               deallocate (qnhphoa_curr)
+              deallocate (rm_gocart)
+              deallocate (kappa_gocart)
+              deallocate (volume_WFA) ! C.H. Lan 07.07.2025
 
               if (pert_thom .and. multi_perturb == 1) then
                 call Remove_multi_perturb_mp_perturbations (perts_qvapor, perts_qcloud, perts_qice, &
@@ -1290,6 +1347,8 @@ REAL, DIMENSION( ims:ime, kms:kme, jms:jme ),                        &
                      NWFA2D=qnwfa2d,                     &
                      NIFA2D=qnifa2d,                     &
                      NBCA2D=qnbca2d,                     &
+                     RMGOCART=rm_gocart,                 &
+                     KAPGOCART=kappa_gocart,             &
                      aer_init_opt=config_flags%aer_init_opt,   &
                      wif_input_opt=config_flags%wif_input_opt, &
                      TH=th,                              &
