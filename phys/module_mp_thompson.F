@@ -3458,7 +3458,7 @@
 !+---+-----------------------------------------------------------------+ !  DROPLET NUCLEATION
            if (clap .gt. eps) then
             if (is_aerosol_aware) then
-               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k)))
+               xnc = MAX(2., activ_ncloud(temp(k), w1d(k), nwfa(k),kappa1d(k),rmg1d(k)))
             else
                xnc = Nt_c
             endif
@@ -5225,7 +5225,7 @@
 !.. updraft velocity could easily be negative, we could use the temp
 !.. and its tendency to diagnose a pretend postive updraft velocity.
 !+---+-----------------------------------------------------------------+
-      real function activ_ncloud(Tt, Ww, NCCN)
+      real function activ_ncloud(Tt, Ww, NCCN, Ka, Ra)
 
       implicit none
       REAL, INTENT(IN):: Tt, Ww, NCCN
