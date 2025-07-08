@@ -5288,7 +5288,16 @@
             if (ra_local >= ta_Ra(l-1) .and. ra_local < ta_Ra(l)) exit
          enddo
       end if
-      m = 2
+      ! ----- ka_local index -----
+      if (ka_local <= ta_Ka(1)) then
+         m = 1
+      else if (ka_local >= ta_Ka(ntb_ark)) then
+         m = ntb_ark
+      else
+         do m = 2, ntb_ark
+            if (ka_local >= ta_Ka(m-1) .and. ka_local < ta_Ka(m)) exit
+         enddo
+      end if
 
       A = tnccn_act(i-1,j-1,k,l,m)
       B = tnccn_act(i,j-1,k,l,m)
