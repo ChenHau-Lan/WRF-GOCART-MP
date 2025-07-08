@@ -339,9 +339,9 @@
       REAL, DIMENSION(ntb_art), PARAMETER, PRIVATE:: &
       ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
       REAL, DIMENSION(ntb_arr), PARAMETER, PRIVATE:: &
-      ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
+      ta_Ra = (/0.01, 0.015, 0.02 , 0.03 , 0.04 , 0.06 , 0.08 , 0.12 , 0.16 ,0.24 , 0.36 , 0.48 , 0.64 , 0.96 , 1.28 /)
       REAL, DIMENSION(ntb_ark), PARAMETER, PRIVATE:: &
-      ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
+      ta_Ka = (/0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,1.,1.1,1.28/)
 
 !..Lookup tables for IN concentration (/m**3) from 0.001 to 1000/Liter.
       REAL, DIMENSION(ntb_IN), PARAMETER, PRIVATE:: &
