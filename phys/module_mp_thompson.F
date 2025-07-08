@@ -5228,8 +5228,8 @@
       real function activ_ncloud(Tt, Ww, NCCN, Ka, Ra)
 
       implicit none
-      REAL, INTENT(IN):: Tt, Ww, NCCN
-      REAL:: n_local, w_local
+      REAL, INTENT(IN):: Tt, Ww, NCCN, Ka, Ra
+      REAL:: n_local, w_local, ka_local, ra_local
       INTEGER:: i, j, k, l, m, n
       REAL:: A, B, C, D, t, u, x1, x2, y1, y2, nx, wy, fraction
 
@@ -5242,6 +5242,8 @@
 
       n_local = NCCN * 1.E-6
       w_local = Ww
+      ka_local = Ka
+      ra_local = Ra
 
       if (n_local .ge. ta_Na(ntb_arc)) then
          n_local = ta_Na(ntb_arc) - 1.0
