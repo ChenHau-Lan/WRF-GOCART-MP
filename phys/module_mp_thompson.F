@@ -5278,7 +5278,16 @@
 !.. should implement other variables to allow more freedom such as
 !.. at least simple separation of tiny size sulfates from larger
 !.. sea salts.
-      l = 3
+      ! ----- ra_local index -----
+      if (ra_local <= ta_Ra(1)) then
+         l = 1
+      else if (ra_local >= ta_Ra(ntb_arr)) then
+         l = ntb_arr
+      else
+         do l = 2, ntb_arr
+            if (ra_local >= ta_Ra(l-1) .and. ra_local < ta_Ra(l)) exit
+         enddo
+      end if
       m = 2
 
       A = tnccn_act(i-1,j-1,k,l,m)
