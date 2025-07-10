@@ -86,7 +86,7 @@
 !.. droplet concentration and nu_c is also variable depending on local
 !.. droplet number concentration.
       REAL, PARAMETER, PRIVATE:: Nt_c = 100.E6
-      REAL, PARAMETER, PRIVATE:: Nt_c_max = 1999.E6
+      REAL, PARAMETER, PRIVATE:: Nt_c_max = 1999.E12 ! C-H. Lan, 07.09.2025
 
 !..Declaration of constants for assumed CCN/IN aerosols when none in
 !.. the input data.  Look inside the init routine for modifications
@@ -247,8 +247,8 @@
       INTEGER, PARAMETER, PRIVATE:: ntb_arc = 7
       INTEGER, PARAMETER, PRIVATE:: ntb_arw = 9
       INTEGER, PARAMETER, PRIVATE:: ntb_art = 7
-      INTEGER, PARAMETER, PRIVATE:: ntb_arr = 5
-      INTEGER, PARAMETER, PRIVATE:: ntb_ark = 4
+      INTEGER, PARAMETER, PRIVATE:: ntb_arr = 15
+      INTEGER, PARAMETER, PRIVATE:: ntb_ark = 19
       INTEGER, PARAMETER, PRIVATE:: ntb_IN = 55
       INTEGER, PRIVATE:: niIN2
 
@@ -339,9 +339,9 @@
       REAL, DIMENSION(ntb_art), PARAMETER, PRIVATE:: &
       ta_Tk = (/243.15, 253.15, 263.15, 273.15, 283.15, 293.15, 303.15/)
       REAL, DIMENSION(ntb_arr), PARAMETER, PRIVATE:: &
-      ta_Ra = (/0.01, 0.02, 0.04, 0.08, 0.16/)
+      ta_Ra = (/0.01, 0.015, 0.02 , 0.03 , 0.04 , 0.06 , 0.08 , 0.12 , 0.16 ,0.24 , 0.36 , 0.48 , 0.64 , 0.96 , 1.28 /)
       REAL, DIMENSION(ntb_ark), PARAMETER, PRIVATE:: &
-      ta_Ka = (/0.2, 0.4, 0.6, 0.8/)
+      ta_Ka = (/0.1,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,1.,1.1,1.28/)
 
 !..Lookup tables for IN concentration (/m**3) from 0.001 to 1000/Liter.
       REAL, DIMENSION(ntb_IN), PARAMETER, PRIVATE:: &
