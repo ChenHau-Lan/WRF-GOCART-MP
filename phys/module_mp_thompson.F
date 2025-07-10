@@ -86,7 +86,7 @@
 !.. droplet concentration and nu_c is also variable depending on local
 !.. droplet number concentration.
       REAL, PARAMETER, PRIVATE:: Nt_c = 100.E6
-      REAL, PARAMETER, PRIVATE:: Nt_c_max = 1999.E6
+      REAL, PARAMETER, PRIVATE:: Nt_c_max = 1999.E12 ! C-H. Lan, 07.09.2025
 
 !..Declaration of constants for assumed CCN/IN aerosols when none in
 !.. the input data.  Look inside the init routine for modifications
